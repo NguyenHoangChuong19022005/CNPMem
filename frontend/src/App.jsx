@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import AuthPanel from './components/AuthPanel';
+import SkillAssessmentPanel from './components/SkillAssessmentPanel';
+import CareerRecommendationPanel from './components/CareerRecommendationPanel';
+import UserProfilePanel from './components/UserProfilePanel';
 
 const features = [
   {
@@ -18,6 +21,17 @@ const features = [
 
 function App() {
   const [section, setSection] = useState('home');
+  const [token, setToken] = useState(() => localStorage.getItem('careerpathse_token'));
+
+  const handleTokenChange = (newToken) => {
+    setToken(newToken);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('careerpathse_token');
+    setToken(null);
+    setSection('home');
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
@@ -30,6 +44,13 @@ function App() {
           <nav className="flex gap-4 text-sm text-slate-400">
             <button onClick={() => setSection('home')} className="transition hover:text-white">Home</button>
             <button onClick={() => setSection('auth')} className="transition hover:text-white">Auth</button>
+            {token && (
+              <>
+                <button onClick={() => setSection('profile')} className="transition hover:text-white">Profile</button>
+                <button onClick={() => setSection('skills')} className="transition hover:text-white">Skills</button>
+                <button onClick={() => setSection('careers')} className="transition hover:text-white">Careers</button>
+              </>
+            )}
             <button onClick={() => setSection('features')} className="transition hover:text-white">Features</button>
           </nav>
         </div>
@@ -144,7 +165,7 @@ function App() {
                   Use a secure login to access your personalized career guidance, roadmap planning, and student profile.
                 </p>
               </div>
-              <AuthPanel />
+              <AuthPanel token={token} onTokenChange={handleTokenChange} onLogout={handleLogout} />
             </div>
             <div className="space-y-6 rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
               <h3 className="text-xl font-semibold text-white">What you can do next</h3>
@@ -162,6 +183,51 @@ function App() {
                   <p className="mt-2 text-sm text-slate-400">Receive recommendations tailored to your career path and learning pace.</p>
                 </li>
               </ul>
+            </div>
+          </section>
+        )}
+
+        {section === 'profile' && token && (
+          <section className="space-y-8">
+            <div className="space-y-3">
+              <p className="text-sm uppercase tracking-[0.24em] text-brand-300">User Profile</p>
+              <h2 className="text-4xl font-semibold text-white">Manage your account and settings</h2>
+              <p className="max-w-2xl text-slate-400">
+                Update your profile information, change your password, and manage your account security.
+              </p>
+            </div>
+            <div className="rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
+              <UserProfilePanel token={token} onLogout={handleLogout} />
+            </div>
+          </section>
+        )}
+
+        {section === 'skills' && token && (
+          <section className="space-y-8">
+            <div className="space-y-3">
+              <p className="text-sm uppercase tracking-[0.24em] text-brand-300">Skill Assessment</p>
+              <h2 className="text-4xl font-semibold text-white">Track and assess your technical skills</h2>
+              <p className="max-w-2xl text-slate-400">
+                Evaluate your proficiency across different areas of software engineering. Your assessments will help us recommend suitable career paths.
+              </p>
+            </div>
+            <div className="rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
+              <SkillAssessmentPanel token={token} />
+            </div>
+          </section>
+        )}
+
+        {section === 'careers' && token && (
+          <section className="space-y-8">
+            <div className="space-y-3">
+              <p className="text-sm uppercase tracking-[0.24em] text-brand-300">Career Recommendations</p>
+              <h2 className="text-4xl font-semibold text-white">Discover career paths matched to your skills</h2>
+              <p className="max-w-2xl text-slate-400">
+                Based on your skill assessments, we recommend career paths suited to your proficiency levels and learning goals.
+              </p>
+            </div>
+            <div className="rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
+              <CareerRecommendationPanel token={token} />
             </div>
           </section>
         )}

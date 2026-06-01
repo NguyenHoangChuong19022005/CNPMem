@@ -7,17 +7,18 @@ const initialForm = {
   fullName: '',
 };
 
-const AuthPanel = () => {
+const AuthPanel = ({ token, onTokenChange, onLogout }) => {
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState(initialForm);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [token, setToken] = useState(() => localStorage.getItem('careerpathse_token'));
+  const [currentToken, setCurrentToken] = useState(token);
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     if (token) {
+      setCurrentToken(token);
       fetchProfile(token);
     }
   }, [token]);
@@ -73,8 +74,9 @@ const AuthPanel = () => {
       if (mode === 'login') {
         const accessToken = data.accessToken;
         localStorage.setItem('careerpathse_token', accessToken);
-        setToken(accessToken);
+        setCurrentToken(accessToken);
         setMessage('Login successful. Profile loaded below.');
+        if (onTokenChange) onTokenChange(accessToken);
       } else {
         setMessage('Registration successful. You can now login.');
       }
@@ -89,10 +91,12 @@ const AuthPanel = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('careerpathse_token');
-    setToken(null);
+    setCurrentToken(null);
     setProfile(null);
     setMessage('Logged out successfully.');
     setError(null);
+    if (onTokenChange) onTokenChange(null);
+    if (onLogout) onLogout();
   };
 
   return (
