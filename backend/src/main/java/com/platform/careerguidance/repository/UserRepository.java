@@ -5,6 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
-    // Hàm tìm kiếm Sinh viên bằng Username (phục vụ cho việc Đăng nhập)
+    // Tìm kiếm user bằng username
     Optional<User> findByUsername(String username);
+
+    // Tìm kiếm user bằng email
+    Optional<User> findByEmail(String email);
 }

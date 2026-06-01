@@ -28,6 +28,11 @@ public class AuthController {
         if(userRepository.findByUsername(user.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body(Map.of("error", "Tên tài khoản này đã tồn tại!"));
         }
+
+        if(userRepository.findByEmail(user.getEmail()).isPresent()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email này đã được đăng ký!"));
+        }
+
         // Tiến hành băm bảo mật mật khẩu trước khi lưu vào file SQLite
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole("ROLE_STUDENT");
