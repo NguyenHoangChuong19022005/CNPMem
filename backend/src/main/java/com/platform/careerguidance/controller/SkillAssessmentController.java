@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -116,18 +117,23 @@ public class SkillAssessmentController {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin thành viên"));
 
         List<SkillAssessment> assessments = assessmentRepository.findByUser(user);
-        List<Map<String, Object>> result = assessments.stream().map(a -> Map.of(
-                "id", a.getId(),
-                "skill", a.getSkill().getName(),
-                "score", a.getScore(),
-                "proficiencyLevel", a.getProficiencyLevel(),
-                "status", a.getStatus(),
-                "feedback", a.getFeedback() != null ? a.getFeedback() : "",
-                "assessedAt", a.getAssessedAt() != null ? a.getAssessedAt() : "",
-                "updatedAt", a.getUpdatedAt()
-        )).collect(Collectors.toList());
+        List<Map<String, Object>> result = assessments.stream().map(a -> {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", a.getId());
+            item.put("skill", a.getSkill().getName());
+            item.put("score", a.getScore());
+            item.put("proficiencyLevel", a.getProficiencyLevel());
+            item.put("status", a.getStatus());
+            item.put("feedback", a.getFeedback() != null ? a.getFeedback() : "");
+            item.put("assessedAt", a.getAssessedAt() != null ? a.getAssessedAt() : "");
+            item.put("updatedAt", a.getUpdatedAt());
+            return item;
+        }).collect(Collectors.toList());
 
-        return ResponseEntity.ok(Map.of("total", assessments.size(), "assessments", result));
+        Map<String, Object> response = new HashMap<>();
+        response.put("total", assessments.size());
+        response.put("assessments", result);
+        return ResponseEntity.ok(response);
     }
 
     // 8. Submit new assessment (Requires Token)

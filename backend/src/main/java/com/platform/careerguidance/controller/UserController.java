@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -94,16 +95,21 @@ public class UserController {
     @GetMapping("/list")
     public ResponseEntity<?> listAllUsers() {
         List<Map<String, Object>> users = userRepository.findAll().stream()
-                .map(user -> Map.of(
-                        "id", user.getId(),
-                        "username", user.getUsername(),
-                        "fullName", user.getFullName() != null ? user.getFullName() : "",
-                        "email", user.getEmail(),
-                        "role", user.getRole()
-                ))
+                .map(user -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", user.getId());
+                    item.put("username", user.getUsername());
+                    item.put("fullName", user.getFullName() != null ? user.getFullName() : "");
+                    item.put("email", user.getEmail());
+                    item.put("role", user.getRole());
+                    return item;
+                })
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(Map.of("total", users.size(), "users", users));
+        Map<String, Object> response = new HashMap<>();
+        response.put("total", users.size());
+        response.put("users", users);
+        return ResponseEntity.ok(response);
     }
 
     // 5. Lấy thông tin user theo ID (Public, không cần Token)

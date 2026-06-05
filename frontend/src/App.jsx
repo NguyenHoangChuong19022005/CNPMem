@@ -2,20 +2,21 @@ import { useState } from 'react';
 import AuthPanel from './components/AuthPanel';
 import SkillAssessmentPanel from './components/SkillAssessmentPanel';
 import CareerRecommendationPanel from './components/CareerRecommendationPanel';
+import CourseRecommendationPanel from './components/CourseRecommendationPanel';
 import UserProfilePanel from './components/UserProfilePanel';
 
 const features = [
   {
-    title: 'Personalized roadmaps',
-    description: 'Create customized learning paths for software engineering topics, skills, and certifications.',
+    title: 'Lộ trình cá nhân hóa',
+    description: 'Tạo đường học tùy chỉnh cho các chủ đề, kỹ năng và chứng chỉ phần mềm.',
   },
   {
-    title: 'Skill gap analysis',
-    description: 'Identify your strengths and weaknesses with targeted course and project recommendations.',
+    title: 'Phân tích khoảng cách kỹ năng',
+    description: 'Xác định điểm mạnh và điểm yếu với đề xuất khóa học và dự án phù hợp.',
   },
   {
-    title: 'Project-based learning',
-    description: 'Match real-world engineering challenges to your career goals and track progress.',
+    title: 'Học qua dự án',
+    description: 'Ghép thách thức thực tế với mục tiêu nghề nghiệp và theo dõi tiến độ.',
   },
 ];
 
@@ -39,19 +40,20 @@ function App() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-300">CareerPathSE</p>
-            <h1 className="text-2xl font-semibold tracking-tight text-white">Personalized Career Orientation</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-white">Định hướng nghề nghiệp cá nhân</h1>
           </div>
           <nav className="flex gap-4 text-sm text-slate-400">
-            <button onClick={() => setSection('home')} className="transition hover:text-white">Home</button>
-            <button onClick={() => setSection('auth')} className="transition hover:text-white">Auth</button>
+            <button onClick={() => setSection('home')} className="transition hover:text-white">Trang chủ</button>
+            <button onClick={() => setSection('auth')} className="transition hover:text-white">Đăng nhập</button>
             {token && (
               <>
-                <button onClick={() => setSection('profile')} className="transition hover:text-white">Profile</button>
-                <button onClick={() => setSection('skills')} className="transition hover:text-white">Skills</button>
-                <button onClick={() => setSection('careers')} className="transition hover:text-white">Careers</button>
+                <button onClick={() => setSection('profile')} className="transition hover:text-white">Hồ sơ</button>
+                <button onClick={() => setSection('skills')} className="transition hover:text-white">Kỹ năng</button>
+                <button onClick={() => setSection('careers')} className="transition hover:text-white">Nghề nghiệp</button>
+                <button onClick={() => setSection('courses')} className="transition hover:text-white">Khóa học</button>
               </>
             )}
-            <button onClick={() => setSection('features')} className="transition hover:text-white">Features</button>
+            <button onClick={() => setSection('features')} className="transition hover:text-white">Tính năng</button>
           </nav>
         </div>
       </header>
@@ -62,37 +64,37 @@ function App() {
             <div className="space-y-8">
               <div className="inline-flex items-center gap-3 rounded-full border border-brand-500/20 bg-brand-500/10 px-4 py-2 text-sm text-brand-200">
                 <span className="h-2.5 w-2.5 rounded-full bg-brand-400" />
-                Build your pathway to software engineering success
+                Xây dựng lộ trình thành công trong kỹ thuật phần mềm
               </div>
               <div className="space-y-6">
                 <h2 className="max-w-3xl text-5xl font-semibold leading-tight tracking-[-0.04em] text-white">
-                  CareerPathSE — a modern platform for software engineering students.
+                  CareerPathSE — nền tảng định hướng nghề cho sinh viên software.
                 </h2>
                 <p className="max-w-2xl text-lg leading-8 text-slate-400">
-                  Discover personalized career orientation, learning roadmaps, skill tracking, and project guidance designed for your next step in software development.
+                  Khám phá hướng nghiệp cá nhân, lộ trình học, theo dõi kỹ năng và hướng dẫn dự án cho bước tiến tiếp theo của bạn.
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <button onClick={() => setSection('auth')} className="rounded-2xl bg-brand-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-brand-400">
-                    Start with Login
+                    Bắt đầu đăng nhập
                   </button>
                   <button onClick={() => setSection('features')} className="rounded-2xl border border-slate-700 px-6 py-3 text-sm text-slate-200 transition hover:border-brand-400 hover:text-white">
-                    Explore features
+                    Xem tính năng
                   </button>
                 </div>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="rounded-3xl border border-slate-800/90 bg-slate-900/70 p-6 shadow-glow backdrop-blur-xl">
-                  <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Goal</p>
-                  <p className="mt-4 text-3xl font-semibold text-white">Career clarity</p>
+                  <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Mục tiêu</p>
+                  <p className="mt-4 text-3xl font-semibold text-white">Rõ ràng nghề nghiệp</p>
                 </div>
                 <div className="rounded-3xl border border-slate-800/90 bg-slate-900/70 p-6 shadow-glow backdrop-blur-xl">
-                  <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Focus</p>
-                  <p className="mt-4 text-3xl font-semibold text-white">Software engineering</p>
+                  <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Tập trung</p>
+                  <p className="mt-4 text-3xl font-semibold text-white">Kỹ thuật phần mềm</p>
                 </div>
                 <div className="rounded-3xl border border-slate-800/90 bg-slate-900/70 p-6 shadow-glow backdrop-blur-xl">
-                  <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Outcome</p>
-                  <p className="mt-4 text-3xl font-semibold text-white">Roadmap-ready</p>
+                  <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Kết quả</p>
+                  <p className="mt-4 text-3xl font-semibold text-white">Sẵn sàng lộ trình</p>
                 </div>
               </div>
             </div>
@@ -138,10 +140,10 @@ function App() {
         {section === 'features' && (
           <section className="space-y-10">
             <div className="flex flex-col gap-3 text-center">
-              <p className="text-sm uppercase tracking-[0.24em] text-brand-300">Features</p>
-              <h2 className="text-4xl font-semibold text-white">Built for software engineering students</h2>
+                <p className="text-sm uppercase tracking-[0.24em] text-brand-300">Tính năng</p>
+              <h2 className="text-4xl font-semibold text-white">Xây dựng cho sinh viên kỹ thuật phần mềm</h2>
               <p className="mx-auto max-w-2xl text-slate-400">
-                A modern orientation platform with guided learning pathways, progress tracking, and career-focused support.
+                Nền tảng định hướng hiện đại với lộ trình học hướng dẫn, theo dõi tiến độ và hỗ trợ nghề nghiệp.
               </p>
             </div>
             <div className="grid gap-6 md:grid-cols-3">
@@ -159,28 +161,28 @@ function App() {
           <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
             <div className="space-y-6 rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
               <div className="space-y-3">
-                <p className="text-sm uppercase tracking-[0.24em] text-brand-300">Authentication</p>
-                <h2 className="text-4xl font-semibold text-white">Sign in or create your CareerPathSE account.</h2>
+                <p className="text-sm uppercase tracking-[0.24em] text-brand-300">Xác thực</p>
+                <h2 className="text-4xl font-semibold text-white">Đăng nhập hoặc tạo tài khoản CareerPathSE.</h2>
                 <p className="max-w-2xl text-slate-400">
-                  Use a secure login to access your personalized career guidance, roadmap planning, and student profile.
+                  Sử dụng đăng nhập an toàn để truy cập hướng nghiệp cá nhân, lộ trình học và hồ sơ sinh viên.
                 </p>
               </div>
               <AuthPanel token={token} onTokenChange={handleTokenChange} onLogout={handleLogout} />
             </div>
             <div className="space-y-6 rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
-              <h3 className="text-xl font-semibold text-white">What you can do next</h3>
+              <h3 className="text-xl font-semibold text-white">Bạn có thể làm gì tiếp theo</h3>
               <ul className="space-y-4 text-slate-400">
                 <li className="rounded-3xl border border-slate-800/90 bg-slate-950/70 p-5">
-                  <strong className="text-white">Track your progress</strong>
-                  <p className="mt-2 text-sm text-slate-400">Save learning milestones and measure skill growth step by step.</p>
+                  <strong className="text-white">Theo dõi tiến trình</strong>
+                  <p className="mt-2 text-sm text-slate-400">Lưu cột mốc học tập và đo lường sự phát triển kỹ năng từng bước.</p>
                 </li>
                 <li className="rounded-3xl border border-slate-800/90 bg-slate-950/70 p-5">
-                  <strong className="text-white">Build a roadmap</strong>
-                  <p className="mt-2 text-sm text-slate-400">Choose goals, courses, and projects aligned with software engineering roles.</p>
+                  <strong className="text-white">Xây dựng lộ trình</strong>
+                  <p className="mt-2 text-sm text-slate-400">Chọn mục tiêu, khóa học và dự án phù hợp với vai trò kỹ thuật phần mềm.</p>
                 </li>
                 <li className="rounded-3xl border border-slate-800/90 bg-slate-950/70 p-5">
-                  <strong className="text-white">Stay focused</strong>
-                  <p className="mt-2 text-sm text-slate-400">Receive recommendations tailored to your career path and learning pace.</p>
+                  <strong className="text-white">Giữ vững tập trung</strong>
+                  <p className="mt-2 text-sm text-slate-400">Nhận đề xuất phù hợp với con đường nghề và tốc độ học của bạn.</p>
                 </li>
               </ul>
             </div>
@@ -228,6 +230,21 @@ function App() {
             </div>
             <div className="rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
               <CareerRecommendationPanel token={token} />
+            </div>
+          </section>
+        )}
+
+        {section === 'courses' && token && (
+          <section className="space-y-8">
+            <div className="space-y-3">
+              <p className="text-sm uppercase tracking-[0.24em] text-brand-300">Course Recommendations</p>
+              <h2 className="text-4xl font-semibold text-white">Personalized courses to grow your skills</h2>
+              <p className="max-w-2xl text-slate-400">
+                Discover courses tailored to your current skill profile and learning gaps.
+              </p>
+            </div>
+            <div className="rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
+              <CourseRecommendationPanel token={token} />
             </div>
           </section>
         )}

@@ -267,23 +267,25 @@ public class CareerRecommendationController {
         List<CareerRecommendation> recommendations = recommendationRepository
                 .findByUserAndStatusOrderByMatchScoreDesc(user, "ACTIVE");
 
-        List<Map<String, Object>> result = recommendations.stream().map(r -> Map.of(
-                "id", r.getId(),
-                "career", r.getCareer().getTitle(),
-                "careerDescription", r.getCareer().getDescription(),
-                "matchScore", r.getMatchScore(),
-                "strength", r.getStrength(),
-                "analysis", r.getAnalysis(),
-                "matchedSkills", r.getMatchedSkills(),
-                "skillsToImprove", r.getSkillsToImprove(),
-                "salaryRange", r.getCareer().getSalaryRange(),
-                "seniority", r.getCareer().getSeniority()
-        )).collect(Collectors.toList());
+        List<Map<String, Object>> result = recommendations.stream().map(r -> {
+            Map<String, Object> item = new HashMap<>();
+            item.put("id", r.getId());
+            item.put("career", r.getCareer().getTitle());
+            item.put("careerDescription", r.getCareer().getDescription());
+            item.put("matchScore", r.getMatchScore());
+            item.put("strength", r.getStrength());
+            item.put("analysis", r.getAnalysis());
+            item.put("matchedSkills", r.getMatchedSkills());
+            item.put("skillsToImprove", r.getSkillsToImprove());
+            item.put("salaryRange", r.getCareer().getSalaryRange());
+            item.put("seniority", r.getCareer().getSeniority());
+            return item;
+        }).collect(Collectors.toList());
 
-        return ResponseEntity.ok(Map.of(
-                "total", recommendations.size(),
-                "recommendations", result
-        ));
+        Map<String, Object> response = new HashMap<>();
+        response.put("total", recommendations.size());
+        response.put("recommendations", result);
+        return ResponseEntity.ok(response);
     }
 
     // 11. Get specific recommendation

@@ -1,0 +1,22 @@
+# Maven local wrapper (không cần đưa lên Git)
+.maven/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# Build output
+target/
+dist/
+
+# Database local
+*.db
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
