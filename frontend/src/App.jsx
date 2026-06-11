@@ -46,9 +46,13 @@ function App() {
             <h1 className="text-2xl font-semibold tracking-tight text-white">Định hướng nghề nghiệp cá nhân</h1>
           </div>
           <nav className="flex gap-4 text-sm text-slate-400">
-            <button onClick={() => setSection('home')} className="transition hover:text-white">Trang chủ</button>
-            <button onClick={() => setSection('auth')} className="transition hover:text-white">Đăng nhập</button>
-            {token && (
+            {!token ? (
+              <>
+                <button onClick={() => setSection('home')} className="transition hover:text-white">Trang chủ</button>
+                <button onClick={() => setSection('auth')} className="transition hover:text-white">Đăng nhập</button>
+                <button onClick={() => setSection('features')} className="transition hover:text-white">Tính năng</button>
+              </>
+            ) : (
               <>
                 <button onClick={() => setSection('profile')} className="transition hover:text-white">Hồ sơ</button>
                 <button onClick={() => setSection('skills')} className="transition hover:text-white">Kỹ năng</button>
@@ -56,7 +60,6 @@ function App() {
                 <button onClick={() => setSection('courses')} className="transition hover:text-white">Khóa học</button>
               </>
             )}
-            <button onClick={() => setSection('features')} className="transition hover:text-white">Tính năng</button>
           </nav>
         </div>
       </header>
