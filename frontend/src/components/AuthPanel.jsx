@@ -45,6 +45,7 @@ const AuthPanel = ({ token, onTokenChange, onLogout }) => {
     } catch (err) {
       setError(err.message);
       setProfile(null);
+      handleLogout(); // Clear invalid token from localStorage
     }
   };
 

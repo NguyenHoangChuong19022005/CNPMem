@@ -72,7 +72,9 @@ const SkillAssessmentPanel = ({ token }) => {
 
   const fetchSkills = async () => {
     try {
-      const res = await fetch('/api/skills');
+      const res = await fetch('/api/skills', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
       setSkills(data.skills || []);
     } catch (e) { console.error(e); }
