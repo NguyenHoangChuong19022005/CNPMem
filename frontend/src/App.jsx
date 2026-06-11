@@ -27,7 +27,7 @@ function App() {
   const handleTokenChange = (newToken) => {
     setToken(newToken);
     if (newToken) {
-      setSection('profile');
+      setSection('skills');
     }
   };
 

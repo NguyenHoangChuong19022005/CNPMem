@@ -170,9 +170,21 @@ const AuthPanel = ({ token, onTokenChange, onLogout }) => {
               placeholder="student123"
             />
           </label>
-          <label className="space-y-2 text-sm text-slate-300">
-            Password
+          <div className="space-y-2 text-sm text-slate-300">
+            <div className="flex items-center justify-between">
+              <label htmlFor="password-input">Password</label>
+              {mode === 'login' && (
+                <button
+                  type="button"
+                  onClick={() => alert('Tính năng Quên mật khẩu đang được bảo trì. Vui lòng liên hệ Admin.')}
+                  className="text-xs text-brand-400 transition hover:text-brand-300 hover:underline"
+                >
+                  Quên mật khẩu?
+                </button>
+              )}
+            </div>
             <input
+              id="password-input"
               type="password"
               name="password"
               value={form.password}
@@ -181,7 +193,7 @@ const AuthPanel = ({ token, onTokenChange, onLogout }) => {
               className="w-full rounded-3xl border border-slate-800 bg-slate-900 px-4 py-3 text-slate-100 outline-none transition focus:border-brand-400"
               placeholder="••••••••"
             />
-          </label>
+          </div>
         </div>
 
         <button
