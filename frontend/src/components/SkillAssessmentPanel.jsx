@@ -1,470 +1,716 @@
 import { useEffect, useState } from 'react';
 
+const PROFICIENCY = [
+  { value: 1, label: 'Beginner', color: '#FF3A5C', bg: 'rgba(255,58,92,0.12)', desc: 'Mới bắt đầu học' },
+  { value: 2, label: 'Elementary', color: '#F5D547', bg: 'rgba(245,213,71,0.12)', desc: 'Biết cơ bản' },
+  { value: 3, label: 'Intermediate', color: '#3DD7E5', bg: 'rgba(61,215,229,0.12)', desc: 'Ứng dụng được' },
+  { value: 4, label: 'Advanced', color: '#5B6BFF', bg: 'rgba(91,107,255,0.12)', desc: 'Thành thạo' },
+  { value: 5, label: 'Expert', color: '#2BE08C', bg: 'rgba(43,224,140,0.12)', desc: 'Chuyên gia' },
+];
+
+const getScoreGradient = (score) => {
+  if (score >= 80) return 'linear-gradient(90deg, #2BE08C, #3DD7E5)';
+  if (score >= 60) return 'linear-gradient(90deg, #5B6BFF, #3DD7E5)';
+  if (score >= 40) return 'linear-gradient(90deg, #F5D547, #5B6BFF)';
+  return 'linear-gradient(90deg, #FF3A5C, #F5D547)';
+};
+
+const getScoreColor = (score) => {
+  if (score >= 80) return '#2BE08C';
+  if (score >= 60) return '#5B6BFF';
+  if (score >= 40) return '#F5D547';
+  return '#FF3A5C';
+};
+
+const getScoreLabel = (score) => {
+  if (score >= 80) return 'Xuất sắc';
+  if (score >= 60) return 'Tốt';
+  if (score >= 40) return 'Khá';
+  return 'Cần cải thiện';
+};
+
+const CategoryIcon = ({ category }) => {
+  const icons = {
+    'Programming': '💻',
+    'Backend': '⚙️',
+    'Frontend': '🎨',
+    'Database': '🗄️',
+    'DevOps': '🚀',
+    'Mobile': '📱',
+    'AI': '🤖',
+    'Security': '🔒',
+    'Testing': '🧪',
+  };
+  const key = Object.keys(icons).find(k => category?.toLowerCase().includes(k.toLowerCase()));
+  return <span style={{ fontSize: '1.25rem' }}>{icons[key] || '⚡'}</span>;
+};
+
 const SkillAssessmentPanel = ({ token }) => {
   const [skills, setSkills] = useState([]);
   const [assessments, setAssessments] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
-  
-  const [form, setForm] = useState({
-    skillId: '',
-    score: 50,
-    proficiencyLevel: 3,
-    feedback: '',
-  });
-
+  const [view, setView] = useState('overview'); // 'overview' | 'form' | 'skills'
   const [editingId, setEditingId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [form, setForm] = useState({ skillId: '', score: 50, proficiencyLevel: 3, feedback: '' });
 
   useEffect(() => {
     if (token) {
-      fetchSkills();
-      fetchAssessments();
-      fetchSummary();
+      fetchAll();
     }
   }, [token]);
 
+  const fetchAll = async () => {
+    setLoading(true);
+    await Promise.all([fetchSkills(), fetchAssessments(), fetchSummary()]);
+    setLoading(false);
+  };
+
   const fetchSkills = async () => {
     try {
-      const response = await fetch('/api/skills');
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch skills');
-      }
+      const res = await fetch('/api/skills');
+      const data = await res.json();
       setSkills(data.skills || []);
-    } catch (err) {
-      setError('Failed to load skills: ' + err.message);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const fetchAssessments = async () => {
     try {
-      const response = await fetch('/api/skills/assessments/my-assessments', {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await fetch('/api/skills/assessments/my-assessments', {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch assessments');
-      }
+      const data = await res.json();
       setAssessments(data.assessments || []);
-    } catch (err) {
-      setError('Failed to load assessments: ' + err.message);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const fetchSummary = async () => {
     try {
-      const response = await fetch('/api/skills/assessments/summary', {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await fetch('/api/skills/assessments/summary', {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to fetch summary');
-      }
+      const data = await res.json();
       setSummary(data);
-    } catch (err) {
-      console.error('Failed to load summary:', err.message);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm({
-      ...form,
-      [name]: name === 'skillId' || name === 'proficiencyLevel' || name === 'score' 
-        ? Number(value) 
-        : value,
-    });
+    setForm({ ...form, [name]: ['skillId', 'proficiencyLevel', 'score'].includes(name) ? Number(value) : value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setSubmitLoading(true);
     setError(null);
     setMessage(null);
-
     try {
-      const endpoint = editingId 
-        ? `/api/skills/assessments/${editingId}`
-        : '/api/skills/assessments';
-
+      const endpoint = editingId ? `/api/skills/assessments/${editingId}` : '/api/skills/assessments';
       const method = editingId ? 'PUT' : 'POST';
+      const body = editingId
+        ? { score: form.score, proficiencyLevel: form.proficiencyLevel, feedback: form.feedback }
+        : { skillId: form.skillId, score: form.score, proficiencyLevel: form.proficiencyLevel, feedback: form.feedback };
 
-      const response = await fetch(endpoint, {
+      const res = await fetch(endpoint, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          skillId: !editingId ? form.skillId : undefined,
-          score: form.score,
-          proficiencyLevel: form.proficiencyLevel,
-          feedback: form.feedback,
-        }),
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
       });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Thất bại');
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || data.message || 'Failed to submit assessment');
-      }
-
-      setMessage(editingId ? 'Assessment updated successfully!' : 'Assessment submitted successfully!');
+      setMessage(editingId ? 'Cập nhật đánh giá thành công!' : 'Gửi đánh giá thành công!');
       setForm({ skillId: '', score: 50, proficiencyLevel: 3, feedback: '' });
       setEditingId(null);
-      
-      fetchAssessments();
-      fetchSummary();
+      setView('overview');
+      fetchAll();
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setSubmitLoading(false);
     }
   };
 
   const handleEdit = (assessment) => {
     setEditingId(assessment.id);
-    setForm({
-      skillId: '',
-      score: assessment.score,
-      proficiencyLevel: assessment.proficiencyLevel,
-      feedback: assessment.feedback || '',
-    });
-  };
-
-  const handleCancel = () => {
-    setEditingId(null);
-    setForm({ skillId: '', score: 50, proficiencyLevel: 3, feedback: '' });
+    setForm({ skillId: '', score: assessment.score, proficiencyLevel: assessment.proficiencyLevel, feedback: assessment.feedback || '' });
+    setView('form');
+    setError(null);
+    setMessage(null);
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this assessment?')) return;
-
+    if (!window.confirm('Xóa đánh giá này?')) return;
     try {
-      const response = await fetch(`/api/skills/assessments/${id}`, {
+      const res = await fetch(`/api/skills/assessments/${id}`, {
         method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to delete assessment');
-      }
-
-      setMessage('Assessment deleted successfully!');
-      fetchAssessments();
-      fetchSummary();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setMessage('Xóa đánh giá thành công!');
+      fetchAll();
     } catch (err) {
-      setError('Failed to delete: ' + err.message);
+      setError(err.message);
     }
   };
 
-  const getProficiencyLabel = (level) => {
-    const levels = { 1: 'Beginner', 2: 'Elementary', 3: 'Intermediate', 4: 'Advanced', 5: 'Expert' };
-    return levels[level] || 'Unknown';
-  };
-
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'bg-emerald-500';
-    if (score >= 60) return 'bg-blue-500';
-    if (score >= 40) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
-
-  const getStrengthLabel = (score) => {
-    if (score >= 80) return 'Excellent';
-    if (score >= 60) return 'Good';
-    if (score >= 40) return 'Fair';
-    return 'Needs work';
-  };
-
-  const categories = [...new Set(skills.map(s => s.category))];
-  const filteredSkills = selectedCategory === 'all' 
-    ? skills 
-    : skills.filter(s => s.category === selectedCategory);
-
+  const categories = ['all', ...new Set(skills.map(s => s.category).filter(Boolean))];
+  const filteredSkills = selectedCategory === 'all' ? skills : skills.filter(s => s.category === selectedCategory);
   const assessedSkillIds = new Set(assessments.map(a => a.skill?.id || a.skillId));
-  const unevaluatedSkills = filteredSkills.filter(s => !assessedSkillIds.has(s.id));
+  const unevaluatedSkills = skills.filter(s => !assessedSkillIds.has(s.id));
+  const proficiencyInfo = PROFICIENCY.find(p => p.value === form.proficiencyLevel);
+
+  if (loading && assessments.length === 0) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '4rem 0' }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: '50%',
+          border: '3px solid rgba(91,107,255,0.2)',
+          borderTopColor: '#5B6BFF',
+          animation: 'spin 0.8s linear infinite'
+        }} />
+        <p style={{ color: '#9AA0AE', fontSize: '0.9rem' }}>Đang tải dữ liệu kỹ năng...</p>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Summary Stats */}
-      {summary && (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-3xl border border-slate-800/90 bg-slate-900/70 p-6 shadow-glow">
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Total Assessments</p>
-            <p className="mt-3 text-4xl font-semibold text-white">{summary.totalAssessments}</p>
-          </div>
-          <div className="rounded-3xl border border-slate-800/90 bg-slate-900/70 p-6 shadow-glow">
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Average Score</p>
-            <p className="mt-3 text-4xl font-semibold text-white">{Math.round(summary.averageScore || 0)}</p>
-          </div>
-          <div className="rounded-3xl border border-slate-800/90 bg-slate-900/70 p-6 shadow-glow">
-            <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Categories</p>
-            <p className="mt-3 text-2xl font-semibold text-white">
-              {Object.keys(summary.categoryBreakdown || {}).length}
-            </p>
-          </div>
-        </div>
-      )}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <style>{`
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .skill-card:hover { border-color: rgba(91,107,255,0.5) !important; transform: translateY(-2px); }
+        .skill-card { transition: all 0.2s ease !important; }
+        .tab-btn:hover { color: #F2F4F8 !important; }
+        .action-btn:hover { opacity: 0.85; transform: scale(0.98); }
+        .action-btn { transition: all 0.15s ease; }
+        .delete-btn:hover { border-color: rgba(255,58,92,0.6) !important; background: rgba(255,58,92,0.15) !important; }
+        .range-input { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 999px; outline: none; cursor: pointer; }
+        .range-input::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #5B6BFF; cursor: pointer; box-shadow: 0 0 0 4px rgba(91,107,255,0.2); }
+      `}</style>
 
-      {/* Messages */}
-      {(message || error) && (
-        <div className={`rounded-3xl border px-5 py-4 text-sm ${error ? 'border-red-500 bg-red-500/10 text-red-200' : 'border-emerald-500 bg-emerald-500/10 text-emerald-200'}`}>
-          {error || message}
-        </div>
-      )}
-
-      {/* Assessment Form */}
-      <form onSubmit={handleSubmit} className="space-y-5 rounded-[1.75rem] border border-slate-800/90 bg-slate-950/80 p-6 shadow-glow">
-        <div className="flex items-center justify-between gap-4">
-          <h3 className="text-lg font-semibold text-white">
-            {editingId ? 'Update Assessment' : 'Submit New Assessment'}
-          </h3>
-          {editingId && (
+      {/* Header & Tabs */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{
+          display: 'inline-flex', background: '#14151C', border: '1px solid #2A2D38',
+          borderRadius: 999, padding: 4, gap: 2
+        }}>
+          {[
+            { key: 'overview', label: '📊 Tổng quan' },
+            { key: 'form', label: editingId ? '✏️ Cập nhật' : '➕ Đánh giá mới' },
+            { key: 'skills', label: '🎯 Kỹ năng' },
+          ].map(tab => (
             <button
-              type="button"
-              onClick={handleCancel}
-              className="text-sm text-slate-400 hover:text-slate-200 transition"
+              key={tab.key}
+              className="tab-btn"
+              onClick={() => { setView(tab.key); if (tab.key !== 'form') { setEditingId(null); setForm({ skillId: '', score: 50, proficiencyLevel: 3, feedback: '' }); } }}
+              style={{
+                padding: '8px 18px', borderRadius: 999, fontSize: '0.8125rem', fontWeight: 600,
+                border: view === tab.key ? '1px solid #5B6BFF' : '1px solid transparent',
+                background: view === tab.key ? '#1E2029' : 'transparent',
+                color: view === tab.key ? '#F2F4F8' : '#9AA0AE',
+                cursor: 'pointer', transition: 'all 0.15s ease',
+              }}
             >
-              Cancel
+              {tab.label}
             </button>
-          )}
+          ))}
         </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          {!editingId && (
-            <label className="space-y-2 text-sm text-slate-300">
-              Select Skill
-              <select
-                name="skillId"
-                value={form.skillId}
-                onChange={handleChange}
-                required={!editingId}
-                className="w-full rounded-3xl border border-slate-800 bg-slate-900 px-4 py-3 text-slate-100 outline-none transition focus:border-brand-400"
-              >
-                <option value="">Choose a skill to assess...</option>
-                {unevaluatedSkills.map(skill => (
-                  <option key={skill.id} value={skill.id}>
-                    {skill.name} ({skill.category})
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-
-          <label className="space-y-2 text-sm text-slate-300">
-            Score (0-100)
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                name="score"
-                value={form.score}
-                onChange={handleChange}
-                min="0"
-                max="100"
-                className="flex-1 h-2 rounded-full accent-brand-500"
-              />
-              <span className="w-12 text-center font-semibold text-brand-400">{form.score}</span>
-            </div>
-          </label>
-        </div>
-
-        <label className="space-y-2 text-sm text-slate-300">
-          Proficiency Level (1-5)
-          <select
-            name="proficiencyLevel"
-            value={form.proficiencyLevel}
-            onChange={handleChange}
-            className="w-full rounded-3xl border border-slate-800 bg-slate-900 px-4 py-3 text-slate-100 outline-none transition focus:border-brand-400"
-          >
-            <option value={1}>1 - Beginner</option>
-            <option value={2}>2 - Elementary</option>
-            <option value={3}>3 - Intermediate</option>
-            <option value={4}>4 - Advanced</option>
-            <option value={5}>5 - Expert</option>
-          </select>
-        </label>
-
-        <label className="space-y-2 text-sm text-slate-300">
-          Feedback (Optional)
-          <textarea
-            name="feedback"
-            value={form.feedback}
-            onChange={handleChange}
-            placeholder="Add notes about your assessment..."
-            className="w-full rounded-3xl border border-slate-800 bg-slate-900 px-4 py-3 text-slate-100 outline-none transition focus:border-brand-400"
-            rows="3"
-          />
-        </label>
 
         <button
-          type="submit"
-          disabled={loading || (!editingId && !form.skillId)}
-          className="w-full rounded-3xl bg-brand-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60"
+          className="action-btn"
+          onClick={() => { setView('form'); setEditingId(null); setForm({ skillId: '', score: 50, proficiencyLevel: 3, feedback: '' }); }}
+          style={{
+            padding: '10px 20px', borderRadius: 10, background: '#5B6BFF',
+            color: '#fff', fontWeight: 600, fontSize: '0.875rem',
+            border: 'none', cursor: 'pointer',
+          }}
         >
-          {loading ? 'Submitting...' : editingId ? 'Update Assessment' : 'Submit Assessment'}
+          + Thêm đánh giá
         </button>
-      </form>
-
-      {/* My Assessments */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <h3 className="text-lg font-semibold text-white">My Assessments</h3>
-          <span className="text-sm text-slate-400">{assessments.length} completed</span>
-        </div>
-
-        {assessments.length === 0 ? (
-          <div className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-8 text-center">
-            <p className="text-slate-400">No assessments yet. Start by submitting your first skill assessment above.</p>
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {assessments.map(assessment => (
-              <div key={assessment.id} className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-5 space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-white">{assessment.skill?.name || 'Unknown Skill'}</h4>
-                    <p className="text-sm text-slate-400">{assessment.skill?.category || 'N/A'}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleEdit(assessment)}
-                      className="px-3 py-1 text-xs rounded-full border border-brand-500/50 text-brand-400 hover:bg-brand-500/10 transition"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(assessment.id)}
-                      className="px-3 py-1 text-xs rounded-full border border-red-500/50 text-red-400 hover:bg-red-500/10 transition"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-400">Score</span>
-                    <span className="font-semibold text-white">{assessment.score}/100</span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-slate-800">
-                    <div 
-                      className={`h-full rounded-full transition ${getScoreColor(assessment.score)}`}
-                      style={{ width: `${assessment.score}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-sm">
-                  <div>
-                    <p className="text-slate-400">Proficiency</p>
-                    <p className="font-semibold text-white">{getProficiencyLabel(assessment.proficiencyLevel)}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-400">Strength</p>
-                    <p className="font-semibold text-white">{getStrengthLabel(assessment.score)}</p>
-                  </div>
-                </div>
-
-                {assessment.feedback && (
-                  <div className="pt-2 border-t border-slate-800">
-                    <p className="text-xs text-slate-400 uppercase tracking-widest">Feedback</p>
-                    <p className="mt-2 text-sm text-slate-300">{assessment.feedback}</p>
-                  </div>
-                )}
-
-                <div className="text-xs text-slate-500">
-                  Updated {new Date(assessment.updatedAt).toLocaleDateString()}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Available Skills */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between gap-4">
-          <h3 className="text-lg font-semibold text-white">Available Skills</h3>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setSelectedCategory('all')}
-              className={`px-3 py-1 text-xs rounded-full transition ${
-                selectedCategory === 'all'
-                  ? 'bg-brand-500 text-slate-950'
-                  : 'border border-slate-700 text-slate-300 hover:border-brand-400'
-              }`}
-            >
-              All
-            </button>
+      {/* Alert Messages */}
+      {(message || error) && (
+        <div style={{
+          animation: 'fadeUp 0.3s ease',
+          padding: '14px 20px', borderRadius: 12, fontSize: '0.875rem',
+          border: `1px solid ${error ? 'rgba(255,58,92,0.4)' : 'rgba(43,224,140,0.4)'}`,
+          background: error ? 'rgba(255,58,92,0.08)' : 'rgba(43,224,140,0.08)',
+          color: error ? '#FF3A5C' : '#2BE08C',
+          display: 'flex', alignItems: 'center', gap: 10
+        }}>
+          <span>{error ? '❌' : '✅'}</span>
+          <span>{error || message}</span>
+          <button onClick={() => { setError(null); setMessage(null); }}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontSize: '1.1rem' }}>×</button>
+        </div>
+      )}
+
+      {/* ========== OVERVIEW TAB ========== */}
+      {view === 'overview' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'fadeUp 0.3s ease' }}>
+          {/* Stats Row */}
+          {summary && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+              {[
+                { label: 'Tổng đánh giá', value: summary.totalAssessments, icon: '📋', color: '#5B6BFF' },
+                { label: 'Điểm trung bình', value: Math.round(summary.averageScore || 0), suffix: '/100', icon: '⭐', color: getScoreColor(summary.averageScore || 0) },
+                { label: 'Danh mục kỹ năng', value: Object.keys(summary.categoryBreakdown || {}).length, icon: '🗂️', color: '#3DD7E5' },
+                { label: 'Chờ đánh giá', value: unevaluatedSkills.length, icon: '⏳', color: '#F5D547' },
+              ].map((stat, i) => (
+                <div key={i} style={{
+                  background: '#14151C', border: '1px solid #2A2D38', borderRadius: 16, padding: '20px',
+                  position: 'relative', overflow: 'hidden',
+                }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: stat.color, opacity: 0.6 }} />
+                  <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>{stat.icon}</div>
+                  <p style={{ color: '#9AA0AE', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{stat.label}</p>
+                  <p style={{ color: stat.color, fontSize: '2rem', fontWeight: 700, fontFamily: 'monospace', lineHeight: 1 }}>
+                    {stat.value}<span style={{ fontSize: '0.875rem', color: '#5C6170' }}>{stat.suffix || ''}</span>
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Category Breakdown */}
+          {summary?.categoryBreakdown && Object.keys(summary.categoryBreakdown).length > 0 && (
+            <div style={{ background: '#14151C', border: '1px solid #2A2D38', borderRadius: 16, padding: '24px' }}>
+              <h3 style={{ color: '#F2F4F8', fontWeight: 600, marginBottom: '1rem', fontSize: '1rem' }}>Phân bổ theo danh mục</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {Object.entries(summary.categoryBreakdown).map(([cat, count]) => {
+                  const maxCount = Math.max(...Object.values(summary.categoryBreakdown));
+                  const pct = Math.round((count / maxCount) * 100);
+                  return (
+                    <div key={cat}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                        <span style={{ color: '#9AA0AE', fontSize: '0.8125rem' }}>{cat}</span>
+                        <span style={{ color: '#F2F4F8', fontSize: '0.8125rem', fontWeight: 600 }}>{count} kỹ năng</span>
+                      </div>
+                      <div style={{ height: 6, background: '#1E2029', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{
+                          height: '100%', width: `${pct}%`, borderRadius: 999,
+                          background: 'linear-gradient(90deg, #5B6BFF, #3DD7E5)',
+                          transition: 'width 0.5s ease',
+                        }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* My Assessments */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h3 style={{ color: '#F2F4F8', fontWeight: 600, fontSize: '1.0625rem' }}>
+                Đánh giá của tôi
+                <span style={{ marginLeft: 8, background: 'rgba(91,107,255,0.15)', color: '#7886FF', borderRadius: 999, padding: '2px 10px', fontSize: '0.8125rem' }}>
+                  {assessments.length}
+                </span>
+              </h3>
+            </div>
+
+            {assessments.length === 0 ? (
+              <div style={{
+                background: '#14151C', border: '1px dashed #2A2D38', borderRadius: 16,
+                padding: '3rem', textAlign: 'center',
+              }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎯</div>
+                <p style={{ color: '#9AA0AE', marginBottom: '0.5rem' }}>Chưa có đánh giá kỹ năng nào</p>
+                <p style={{ color: '#5C6170', fontSize: '0.8125rem' }}>Bắt đầu bằng cách nhấn "Thêm đánh giá"</p>
+                <button onClick={() => setView('form')} style={{
+                  marginTop: '1rem', padding: '10px 24px', background: '#5B6BFF', color: '#fff',
+                  borderRadius: 10, border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem',
+                }}>
+                  + Thêm đánh giá đầu tiên
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+                {assessments.map(a => {
+                  const profInfo = PROFICIENCY.find(p => p.value === a.proficiencyLevel);
+                  return (
+                    <div key={a.id} className="skill-card" style={{
+                      background: '#14151C', border: '1px solid #2A2D38', borderRadius: 16, padding: '20px',
+                      display: 'flex', flexDirection: 'column', gap: '0.875rem',
+                    }}>
+                      {/* Header */}
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                        <div style={{ flex: 1 }}>
+                          <h4 style={{ color: '#F2F4F8', fontWeight: 600, fontSize: '0.9375rem', marginBottom: 2 }}>
+                            {a.skill?.name || 'Kỹ năng'}
+                          </h4>
+                          <span style={{
+                            fontSize: '0.75rem', padding: '2px 8px', borderRadius: 999,
+                            background: 'rgba(91,107,255,0.12)', color: '#7886FF',
+                          }}>
+                            {a.skill?.category || 'General'}
+                          </span>
+                        </div>
+                        <div style={{
+                          fontSize: '1.5rem', fontWeight: 700, fontFamily: 'monospace',
+                          color: getScoreColor(a.score), lineHeight: 1,
+                        }}>
+                          {a.score}
+                        </div>
+                      </div>
+
+                      {/* Score Bar */}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, fontSize: '0.75rem' }}>
+                          <span style={{ color: '#9AA0AE' }}>Điểm số</span>
+                          <span style={{ color: getScoreColor(a.score), fontWeight: 600 }}>{getScoreLabel(a.score)}</span>
+                        </div>
+                        <div style={{ height: 6, background: '#1E2029', borderRadius: 999, overflow: 'hidden' }}>
+                          <div style={{
+                            height: '100%', width: `${a.score}%`,
+                            background: getScoreGradient(a.score), borderRadius: 999,
+                          }} />
+                        </div>
+                      </div>
+
+                      {/* Proficiency Badge */}
+                      {profInfo && (
+                        <div style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 6,
+                          background: profInfo.bg, border: `1px solid ${profInfo.color}40`,
+                          borderRadius: 8, padding: '6px 12px', alignSelf: 'flex-start',
+                        }}>
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: profInfo.color }} />
+                          <span style={{ color: profInfo.color, fontSize: '0.75rem', fontWeight: 600 }}>
+                            Level {a.proficiencyLevel} — {profInfo.label}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Feedback */}
+                      {a.feedback && (
+                        <p style={{ color: '#9AA0AE', fontSize: '0.8125rem', lineHeight: 1.5, borderTop: '1px solid #2A2D38', paddingTop: '0.75rem' }}>
+                          "{a.feedback}"
+                        </p>
+                      )}
+
+                      {/* Actions */}
+                      <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
+                        <button onClick={() => handleEdit(a)} style={{
+                          flex: 1, padding: '8px', borderRadius: 8, fontSize: '0.8125rem', fontWeight: 600,
+                          border: '1px solid rgba(91,107,255,0.4)', background: 'rgba(91,107,255,0.08)',
+                          color: '#7886FF', cursor: 'pointer', transition: 'all 0.15s',
+                        }}>
+                          ✏️ Sửa
+                        </button>
+                        <button onClick={() => handleDelete(a.id)} className="delete-btn" style={{
+                          flex: 1, padding: '8px', borderRadius: 8, fontSize: '0.8125rem', fontWeight: 600,
+                          border: '1px solid rgba(255,58,92,0.3)', background: 'rgba(255,58,92,0.06)',
+                          color: '#FF3A5C', cursor: 'pointer', transition: 'all 0.15s',
+                        }}>
+                          🗑️ Xóa
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========== FORM TAB ========== */}
+      {view === 'form' && (
+        <div style={{ animation: 'fadeUp 0.3s ease', maxWidth: 640, margin: '0 auto', width: '100%' }}>
+          <div style={{ background: '#14151C', border: '1px solid #2A2D38', borderRadius: 20, overflow: 'hidden' }}>
+            {/* Form Header */}
+            <div style={{ padding: '24px 28px', borderBottom: '1px solid #2A2D38', background: 'linear-gradient(135deg, rgba(91,107,255,0.08), rgba(61,215,229,0.04))' }}>
+              <h3 style={{ color: '#F2F4F8', fontWeight: 700, fontSize: '1.125rem', marginBottom: 4 }}>
+                {editingId ? '✏️ Cập nhật đánh giá kỹ năng' : '🎯 Đánh giá kỹ năng mới'}
+              </h3>
+              <p style={{ color: '#9AA0AE', fontSize: '0.875rem' }}>
+                {editingId ? 'Cập nhật điểm số và mức độ thành thạo của bạn' : 'Chọn kỹ năng và tự đánh giá trình độ hiện tại'}
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              {/* Skill Selector */}
+              {!editingId && (
+                <div>
+                  <label style={{ display: 'block', color: '#9AA0AE', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                    Chọn kỹ năng
+                  </label>
+                  <select
+                    name="skillId"
+                    value={form.skillId}
+                    onChange={handleChange}
+                    required={!editingId}
+                    style={{
+                      width: '100%', padding: '12px 16px', borderRadius: 10, fontSize: '0.9375rem',
+                      background: '#1E2029', border: '1px solid #2A2D38', color: form.skillId ? '#F2F4F8' : '#5C6170',
+                      outline: 'none', cursor: 'pointer', appearance: 'none',
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239AA0AE' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center',
+                    }}
+                  >
+                    <option value="">-- Chọn kỹ năng cần đánh giá --</option>
+                    {unevaluatedSkills.map(s => (
+                      <option key={s.id} value={s.id}>{s.name} ({s.category})</option>
+                    ))}
+                    {unevaluatedSkills.length === 0 && (
+                      <option disabled>✅ Bạn đã đánh giá tất cả kỹ năng!</option>
+                    )}
+                  </select>
+                </div>
+              )}
+
+              {/* Score Slider */}
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <label style={{ color: '#9AA0AE', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    Điểm tự đánh giá
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: 4 }}>
+                    <span style={{ color: getScoreColor(form.score), fontSize: '2rem', fontWeight: 700, fontFamily: 'monospace', lineHeight: 1 }}>
+                      {form.score}
+                    </span>
+                    <span style={{ color: '#5C6170', fontSize: '0.875rem' }}>/100</span>
+                    <span style={{ marginLeft: 8, fontSize: '0.8125rem', color: getScoreColor(form.score), fontWeight: 600 }}>
+                      — {getScoreLabel(form.score)}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ background: '#1E2029', borderRadius: 12, padding: '16px' }}>
+                  <input
+                    type="range"
+                    name="score"
+                    value={form.score}
+                    onChange={handleChange}
+                    min="0" max="100"
+                    className="range-input"
+                    style={{
+                      width: '100%',
+                      background: `linear-gradient(90deg, ${getScoreColor(form.score)} ${form.score}%, #2A2D38 ${form.score}%)`,
+                    }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+                    {[0, 25, 50, 75, 100].map(v => (
+                      <span key={v} style={{ color: '#5C6170', fontSize: '0.6875rem' }}>{v}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Proficiency Level */}
+              <div>
+                <label style={{ display: 'block', color: '#9AA0AE', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
+                  Mức độ thành thạo
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {PROFICIENCY.map(p => (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => setForm({ ...form, proficiencyLevel: p.value })}
+                      style={{
+                        flex: 1, minWidth: 80, padding: '10px 8px', borderRadius: 10, cursor: 'pointer',
+                        border: form.proficiencyLevel === p.value ? `1px solid ${p.color}` : '1px solid #2A2D38',
+                        background: form.proficiencyLevel === p.value ? p.bg : '#1E2029',
+                        color: form.proficiencyLevel === p.value ? p.color : '#9AA0AE',
+                        fontWeight: form.proficiencyLevel === p.value ? 700 : 400,
+                        fontSize: '0.75rem', transition: 'all 0.15s', textAlign: 'center',
+                      }}
+                    >
+                      <div style={{ fontSize: '1rem', marginBottom: 2 }}>
+                        {['🌱', '📚', '⚡', '🔥', '👑'][p.value - 1]}
+                      </div>
+                      <div>{p.label}</div>
+                    </button>
+                  ))}
+                </div>
+                {proficiencyInfo && (
+                  <p style={{ color: '#5C6170', fontSize: '0.8125rem', marginTop: 8, fontStyle: 'italic' }}>
+                    {proficiencyInfo.desc}
+                  </p>
+                )}
+              </div>
+
+              {/* Feedback */}
+              <div>
+                <label style={{ display: 'block', color: '#9AA0AE', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                  Ghi chú (Tùy chọn)
+                </label>
+                <textarea
+                  name="feedback"
+                  value={form.feedback}
+                  onChange={handleChange}
+                  placeholder="Ví dụ: Tôi đã làm 2 dự án thực tế với kỹ năng này..."
+                  rows={3}
+                  style={{
+                    width: '100%', padding: '12px 16px', borderRadius: 10, fontSize: '0.9375rem',
+                    background: '#1E2029', border: '1px solid #2A2D38', color: '#F2F4F8',
+                    outline: 'none', resize: 'vertical', fontFamily: 'inherit', boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+
+              {/* Submit */}
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button type="button" onClick={() => { setView('overview'); setEditingId(null); }} style={{
+                  flex: 1, padding: '14px', borderRadius: 10, fontSize: '0.9375rem', fontWeight: 600,
+                  border: '1px solid #3A3D4A', background: 'transparent', color: '#9AA0AE', cursor: 'pointer',
+                }}>
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitLoading || (!editingId && !form.skillId)}
+                  style={{
+                    flex: 2, padding: '14px', borderRadius: 10, fontSize: '0.9375rem', fontWeight: 700,
+                    background: submitLoading ? '#3A3D4A' : '#5B6BFF', color: '#fff',
+                    border: 'none', cursor: submitLoading ? 'not-allowed' : 'pointer',
+                    opacity: (!editingId && !form.skillId) ? 0.5 : 1,
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {submitLoading ? '⏳ Đang xử lý...' : editingId ? '✅ Cập nhật đánh giá' : '🚀 Gửi đánh giá'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========== SKILLS TAB ========== */}
+      {view === 'skills' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', animation: 'fadeUp 0.3s ease' }}>
+          {/* Category Filter */}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {categories.map(cat => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1 text-xs rounded-full transition ${
-                  selectedCategory === cat
-                    ? 'bg-brand-500 text-slate-950'
-                    : 'border border-slate-700 text-slate-300 hover:border-brand-400'
-                }`}
+                style={{
+                  padding: '6px 16px', borderRadius: 999, fontSize: '0.8125rem', fontWeight: 600,
+                  border: selectedCategory === cat ? '1px solid #5B6BFF' : '1px solid #2A2D38',
+                  background: selectedCategory === cat ? 'rgba(91,107,255,0.15)' : '#14151C',
+                  color: selectedCategory === cat ? '#7886FF' : '#9AA0AE',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                }}
               >
-                {cat}
+                {cat === 'all' ? '🌐 Tất cả' : cat}
               </button>
             ))}
           </div>
-        </div>
 
-        {filteredSkills.length === 0 ? (
-          <div className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-8 text-center">
-            <p className="text-slate-400">No skills available in this category.</p>
-          </div>
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2">
+          {/* Skills Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' }}>
             {filteredSkills.map(skill => {
-              const assessed = assessments.find(a => a.skill?.id === skill.id);
+              const assessed = assessments.find(a => a.skill?.id === skill.id || a.skillId === skill.id);
               return (
-                <div key={skill.id} className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-white">{skill.name}</h4>
-                      <p className="text-xs text-slate-400 mt-1">{skill.description}</p>
+                <div key={skill.id} className="skill-card" style={{
+                  background: '#14151C', border: `1px solid ${assessed ? 'rgba(43,224,140,0.2)' : '#2A2D38'}`,
+                  borderRadius: 16, padding: '18px', position: 'relative', overflow: 'hidden',
+                }}>
+                  {assessed && (
+                    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'linear-gradient(90deg, #2BE08C, #3DD7E5)' }} />
+                  )}
+
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                    <div style={{
+                      width: 42, height: 42, borderRadius: 10,
+                      background: assessed ? 'rgba(43,224,140,0.1)' : 'rgba(91,107,255,0.1)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    }}>
+                      <CategoryIcon category={skill.category} />
                     </div>
-                    {assessed && (
-                      <span className="px-2 py-1 text-xs rounded-full bg-emerald-500/20 text-emerald-300">
-                        Assessed
-                      </span>
-                    )}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <h4 style={{ color: '#F2F4F8', fontWeight: 600, fontSize: '0.9375rem', margin: 0 }}>
+                          {skill.name}
+                        </h4>
+                        {assessed ? (
+                          <span style={{
+                            fontSize: '0.75rem', fontWeight: 700, fontFamily: 'monospace',
+                            color: getScoreColor(assessed.score),
+                          }}>
+                            {assessed.score}pts
+                          </span>
+                        ) : (
+                          <span style={{
+                            fontSize: '0.6875rem', padding: '2px 8px', borderRadius: 999,
+                            background: 'rgba(245,213,71,0.1)', color: '#F5D547', fontWeight: 600,
+                          }}>
+                            Chưa đánh giá
+                          </span>
+                        )}
+                      </div>
+                      <p style={{ color: '#5C6170', fontSize: '0.75rem', margin: '2px 0 0 0' }}>{skill.category}</p>
+                    </div>
                   </div>
-                  <div className="mt-3 flex items-center justify-between text-xs text-slate-400">
-                    <span>{skill.category}</span>
-                    {assessed && (
-                      <span className="text-brand-300 font-semibold">{assessed.score}</span>
-                    )}
-                  </div>
+
+                  {skill.description && (
+                    <p style={{ color: '#9AA0AE', fontSize: '0.8125rem', lineHeight: 1.5, marginTop: 12 }}>
+                      {skill.description}
+                    </p>
+                  )}
+
+                  {assessed ? (
+                    <div style={{ marginTop: 12 }}>
+                      <div style={{ height: 4, background: '#1E2029', borderRadius: 999, overflow: 'hidden' }}>
+                        <div style={{
+                          height: '100%', width: `${assessed.score}%`,
+                          background: getScoreGradient(assessed.score), borderRadius: 999,
+                        }} />
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
+                        <span style={{ color: '#2BE08C', fontSize: '0.75rem' }}>✓ Đã đánh giá</span>
+                        <button onClick={() => handleEdit(assessed)} style={{
+                          fontSize: '0.75rem', color: '#7886FF', background: 'none', border: 'none', cursor: 'pointer',
+                        }}>
+                          Sửa →
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setForm({ ...form, skillId: skill.id });
+                        setView('form');
+                        setEditingId(null);
+                      }}
+                      style={{
+                        width: '100%', marginTop: 12, padding: '8px', borderRadius: 8, fontSize: '0.8125rem',
+                        border: '1px dashed rgba(91,107,255,0.4)', background: 'rgba(91,107,255,0.05)',
+                        color: '#7886FF', cursor: 'pointer', fontWeight: 600, transition: 'all 0.15s',
+                      }}
+                    >
+                      + Đánh giá ngay
+                    </button>
+                  )}
                 </div>
               );
             })}
           </div>
-        )}
-      </div>
 
-      <div className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-5 text-sm text-slate-400">
-        <p className="font-semibold text-slate-100">Skill Assessment Integration</p>
-        <p className="mt-2 leading-6">
-          This panel integrates with skill assessment APIs: <code className="rounded bg-slate-900 px-1 py-0.5 text-slate-200">GET /api/skills</code>, <code className="rounded bg-slate-900 px-1 py-0.5 text-slate-200">POST /api/skills/assessments</code>, and <code className="rounded bg-slate-900 px-1 py-0.5 text-slate-200">GET /api/skills/assessments/my-assessments</code>.
-        </p>
-      </div>
+          {filteredSkills.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '3rem', color: '#5C6170' }}>
+              <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔍</div>
+              <p>Không có kỹ năng nào trong danh mục này</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
