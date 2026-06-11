@@ -189,13 +189,6 @@ const CourseRecommendationPanel = ({ token }) => {
           </div>
         ))}
       </div>
-
-      <div className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-5 text-sm text-slate-400">
-        <p className="font-semibold text-slate-100">Course Recommendation Integration</p>
-        <p className="mt-2 leading-6">
-          This component now calls the backend to load course recommendations tailored to your skill assessment profile.
-        </p>
-      </div>
     </div>
   );
 };

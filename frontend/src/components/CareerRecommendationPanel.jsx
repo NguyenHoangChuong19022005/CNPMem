@@ -323,13 +323,6 @@ const CareerRecommendationPanel = ({ token }) => {
           </div>
         </div>
       )}
-
-      <div className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-5 text-sm text-slate-400">
-        <p className="font-semibold text-slate-100">Career Recommendations Integration</p>
-        <p className="mt-2 leading-6">
-          This panel integrates with career recommendation APIs: <code className="rounded bg-slate-900 px-1 py-0.5 text-slate-200">POST /api/careers/recommendations/generate</code>, <code className="rounded bg-slate-900 px-1 py-0.5 text-slate-200">GET /api/careers/recommendations/my-recommendations</code>, and <code className="rounded bg-slate-900 px-1 py-0.5 text-slate-200">PUT /api/careers/recommendations/{'{id}'}/archive</code>.
-        </p>
-      </div>
     </div>
   );
 };

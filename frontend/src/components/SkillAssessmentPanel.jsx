@@ -57,6 +57,17 @@ const SkillAssessmentPanel = ({ token }) => {
   const [editingId, setEditingId] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [form, setForm] = useState({ skillId: '', score: 50, proficiencyLevel: 3, feedback: '' });
+  const [bulkSelections, setBulkSelections] = useState({});
+
+  useEffect(() => {
+    if (view === 'bulk') {
+      const initial = {};
+      unevaluatedSkills.forEach(s => {
+        initial[s.id] = { selected: false, score: 50, proficiencyLevel: 3 };
+      });
+      setBulkSelections(initial);
+    }
+  }, [view, skills, assessments]);
 
   useEffect(() => {
     if (token) {
@@ -103,6 +114,61 @@ const SkillAssessmentPanel = ({ token }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: ['skillId', 'proficiencyLevel', 'score'].includes(name) ? Number(value) : value });
+  };
+
+  const handleBulkChange = (skillId, field, value) => {
+    setBulkSelections(prev => ({
+      ...prev,
+      [skillId]: {
+        ...prev[skillId],
+        [field]: value
+      }
+    }));
+  };
+
+  const handleBulkSubmit = async (e) => {
+    e.preventDefault();
+    const selectedIds = Object.keys(bulkSelections).filter(id => bulkSelections[id].selected);
+    if (selectedIds.length === 0) {
+      setError("Vui lòng chọn ít nhất một kỹ năng để đánh giá!");
+      return;
+    }
+
+    setSubmitLoading(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const promises = selectedIds.map(skillId => {
+        const item = bulkSelections[skillId];
+        return fetch('/api/skills/assessments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            skillId: Number(skillId),
+            score: item.score,
+            proficiencyLevel: item.proficiencyLevel,
+            feedback: 'Đánh giá nhanh hàng loạt'
+          })
+        }).then(async res => {
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Lỗi khi gửi đánh giá');
+          return data;
+        });
+      });
+
+      await Promise.all(promises);
+      setMessage(`Đã gửi thành công ${selectedIds.length} đánh giá kỹ năng!`);
+      setView('overview');
+      fetchAll();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -209,6 +275,7 @@ const SkillAssessmentPanel = ({ token }) => {
           {[
             { key: 'overview', label: '📊 Tổng quan' },
             { key: 'form', label: editingId ? '✏️ Cập nhật' : '➕ Đánh giá mới' },
+            { key: 'bulk', label: '⚡ Đánh giá hàng loạt' },
             { key: 'skills', label: '🎯 Kỹ năng' },
           ].map(tab => (
             <button
@@ -589,6 +656,137 @@ const SkillAssessmentPanel = ({ token }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ========== BULK TAB ========== */}
+      {view === 'bulk' && (
+        <div style={{ animation: 'fadeUp 0.3s ease', width: '100%' }}>
+          <div style={{ background: '#14151C', border: '1px solid #2A2D38', borderRadius: 20, padding: '28px' }}>
+            <h3 style={{ color: '#F2F4F8', fontWeight: 700, fontSize: '1.125rem', marginBottom: 6 }}>
+              ⚡ Đánh giá nhanh hàng loạt kỹ năng
+            </h3>
+            <p style={{ color: '#9AA0AE', fontSize: '0.875rem', marginBottom: '1.5rem' }}>
+              Chọn các kỹ năng bạn muốn tự đánh giá, điều chỉnh điểm số và trình độ thành thạo tương ứng cho mỗi mục, rồi lưu lại toàn bộ chỉ với một lần bấm.
+            </p>
+
+            {unevaluatedSkills.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem 0', color: '#5C6170' }}>
+                <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+                <p>Bạn đã hoàn thành đánh giá cho tất cả kỹ năng!</p>
+              </div>
+            ) : (
+              <form onSubmit={handleBulkSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {unevaluatedSkills.map(skill => {
+                    const selection = bulkSelections[skill.id] || { selected: false, score: 50, proficiencyLevel: 3 };
+                    return (
+                      <div key={skill.id} style={{
+                        border: `1px solid ${selection.selected ? '#5B6BFF' : '#2A2D38'}`,
+                        background: selection.selected ? 'rgba(91,107,255,0.02)' : 'transparent',
+                        borderRadius: 16, padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px',
+                        transition: 'all 0.2s ease',
+                      }}>
+                        {/* Title & Checkbox */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <input
+                            type="checkbox"
+                            checked={selection.selected}
+                            onChange={(e) => handleBulkChange(skill.id, 'selected', e.target.checked)}
+                            style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#5B6BFF' }}
+                            id={`check-${skill.id}`}
+                          />
+                          <label htmlFor={`check-${skill.id}`} style={{
+                            fontWeight: 600, color: '#F2F4F8', cursor: 'pointer', fontSize: '0.9375rem',
+                            display: 'flex', alignItems: 'center', gap: 8
+                          }}>
+                            <CategoryIcon category={skill.category} />
+                            {skill.name}
+                            <span style={{ fontSize: '0.75rem', color: '#5C6170', fontWeight: 400 }}>({skill.category})</span>
+                          </label>
+                        </div>
+
+                        {/* Sliders and level selections (visible only when checkbox is selected) */}
+                        {selection.selected && (
+                          <div style={{
+                            display: 'grid', gridTemplateColumns: '1fr', gap: '1rem',
+                            padding: '8px 12px 12px 30px', borderLeft: '2px solid #5B6BFF',
+                            animation: 'fadeUp 0.15s ease'
+                          }}>
+                            {/* Score Slider */}
+                            <div>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                                <span style={{ color: '#9AA0AE', fontSize: '0.75rem', textTransform: 'uppercase' }}>Điểm tự đánh giá:</span>
+                                <span style={{ color: getScoreColor(selection.score), fontWeight: 700, fontFamily: 'monospace' }}>
+                                  {selection.score}/100 ({getScoreLabel(selection.score)})
+                                </span>
+                              </div>
+                              <input
+                                type="range"
+                                min="0" max="100"
+                                value={selection.score}
+                                onChange={(e) => handleBulkChange(skill.id, 'score', Number(e.target.value))}
+                                className="range-input"
+                                style={{
+                                  width: '100%',
+                                  background: `linear-gradient(90deg, ${getScoreColor(selection.score)} ${selection.score}%, #2A2D38 ${selection.score}%)`,
+                                }}
+                              />
+                            </div>
+
+                            {/* Level Selector */}
+                            <div>
+                              <div style={{ color: '#9AA0AE', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: 6 }}>Mức độ thành thạo:</div>
+                              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                                {PROFICIENCY.map(p => (
+                                  <button
+                                    key={p.value}
+                                    type="button"
+                                    onClick={() => handleBulkChange(skill.id, 'proficiencyLevel', p.value)}
+                                    style={{
+                                      padding: '6px 12px', borderRadius: 8, cursor: 'pointer',
+                                      border: selection.proficiencyLevel === p.value ? `1px solid ${p.color}` : '1px solid #2A2D38',
+                                      background: selection.proficiencyLevel === p.value ? p.bg : '#1E2029',
+                                      color: selection.proficiencyLevel === p.value ? p.color : '#9AA0AE',
+                                      fontWeight: selection.proficiencyLevel === p.value ? 700 : 400,
+                                      fontSize: '0.75rem', transition: 'all 0.1s',
+                                    }}
+                                  >
+                                    {p.label}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{ display: 'flex', gap: 12, marginTop: '1rem' }}>
+                  <button type="button" onClick={() => setView('overview')} style={{
+                    flex: 1, padding: '14px', borderRadius: 10, fontSize: '0.9375rem', fontWeight: 600,
+                    border: '1px solid #3A3D4A', background: 'transparent', color: '#9AA0AE', cursor: 'pointer',
+                  }}>
+                    Quay lại
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitLoading || Object.keys(bulkSelections).filter(id => bulkSelections[id].selected).length === 0}
+                    style={{
+                      flex: 2, padding: '14px', borderRadius: 10, fontSize: '0.9375rem', fontWeight: 700,
+                      background: submitLoading ? '#3A3D4A' : '#5B6BFF', color: '#fff',
+                      border: 'none', cursor: submitLoading ? 'not-allowed' : 'pointer',
+                      opacity: Object.keys(bulkSelections).filter(id => bulkSelections[id].selected).length === 0 ? 0.5 : 1,
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {submitLoading ? '⏳ Đang lưu...' : `🚀 Gửi ${Object.keys(bulkSelections).filter(id => bulkSelections[id].selected).length} đánh giá`}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

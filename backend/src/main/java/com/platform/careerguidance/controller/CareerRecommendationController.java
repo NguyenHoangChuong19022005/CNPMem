@@ -205,10 +205,8 @@ public class CareerRecommendationController {
                 }
             }
 
-            // If user doesn't have all mandatory skills, give lower score
-            if (mandatoryMatched < mandatoryReqs.size()) {
-                continue; // Skip this career
-            }
+            // If user doesn't have all mandatory skills, we still recommend it but with a lower score
+            // (Removed the continue/skip logic so users can see what skills they need to improve)
 
             // Calculate match score (0-100)
             int totalReqs = requirements.size();

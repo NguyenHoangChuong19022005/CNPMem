@@ -221,13 +221,6 @@ const AuthPanel = ({ token, onTokenChange, onLogout }) => {
           </div>
         </div>
       )}
-
-      <div className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-5 text-sm text-slate-400">
-        <p className="font-semibold text-slate-100">Backend API integration active</p>
-        <p className="mt-2 leading-6">
-          This panel calls <code className="rounded bg-slate-900 px-1 py-0.5 text-slate-200">/api/auth/login</code>, <code className="rounded bg-slate-900 px-1 py-0.5 text-slate-200">/api/auth/register</code>, and <code className="rounded bg-slate-900 px-1 py-0.5 text-slate-200">/api/users/profile</code>.
-        </p>
-      </div>
     </div>
   );
 };
