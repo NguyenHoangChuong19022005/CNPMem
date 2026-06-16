@@ -3,63 +3,63 @@ import { useEffect, useState } from 'react';
 const sampleCourses = [
   {
     id: 1,
-    title: 'Advanced Java & Spring Boot Development',
-    provider: 'CareerPath Academy',
-    description: 'Deepen your backend knowledge with Java, Spring Boot, REST API design, and microservice architecture.',
-    skills: ['Java', 'Spring Boot', 'Microservices'],
-    level: 'Advanced',
-    duration: '8 weeks',
-    url: 'https://example.com/java-spring-boot',
+    title: 'Phát triển Java & Spring Boot Nâng cao',
+    provider: 'Học viện CareerPath',
+    description: 'Nắm vững kiến thức backend với Java, Spring Boot, thiết kế REST API và kiến trúc vi dịch vụ.',
+    skills: ['Java', 'Spring Boot', 'Vi dịch vụ'],
+    level: 'Nâng cao',
+    duration: '8 tuần',
+    url: 'https://spring.io/quickstart',
   },
   {
     id: 2,
-    title: 'React and Frontend Architecture',
-    provider: 'CareerPath Academy',
-    description: 'Master modern frontend development with React, component design, and performance optimization.',
+    title: 'Kiến trúc React & Frontend',
+    provider: 'Học viện CareerPath',
+    description: 'Trở thành chuyên gia phát triển frontend hiện đại với React, thiết kế component và tối ưu hóa hiệu suất.',
     skills: ['React', 'JavaScript', 'Frontend'],
-    level: 'Intermediate',
-    duration: '6 weeks',
-    url: 'https://example.com/react-frontend',
+    level: 'Trung bình',
+    duration: '6 tuần',
+    url: 'https://react.dev',
   },
   {
     id: 3,
-    title: 'Database Design & SQL Performance',
-    provider: 'CareerPath Academy',
-    description: 'Improve database modeling, SQL queries, indexing, and data persistence for production apps.',
-    skills: ['SQL', 'Database', 'Data Modeling'],
-    level: 'Intermediate',
-    duration: '5 weeks',
-    url: 'https://example.com/database-sql',
+    title: 'Thiết kế Cơ sở dữ liệu & Tối ưu SQL',
+    provider: 'Học viện CareerPath',
+    description: 'Cải thiện mô hình hóa dữ liệu, truy vấn SQL, đánh chỉ mục và lưu trữ dữ liệu cho các ứng dụng thực tế.',
+    skills: ['SQL', 'Cơ sở dữ liệu', 'Mô hình hóa dữ liệu'],
+    level: 'Trung bình',
+    duration: '5 tuần',
+    url: 'https://www.w3schools.com/sql/',
   },
   {
     id: 4,
-    title: 'DevOps Fundamentals: Docker & Kubernetes',
-    provider: 'CareerPath Academy',
-    description: 'Learn containerization, CI/CD pipelines, and deployment practices for modern software teams.',
+    title: 'Cơ bản về DevOps: Docker & Kubernetes',
+    provider: 'Học viện CareerPath',
+    description: 'Tìm hiểu về container hóa, đường ống CI/CD và các thực tiễn triển khai cho các nhóm phần mềm hiện đại.',
     skills: ['Docker', 'Kubernetes', 'CI/CD'],
-    level: 'Intermediate',
-    duration: '7 weeks',
-    url: 'https://example.com/devops-docker-k8s',
+    level: 'Trung bình',
+    duration: '7 tuần',
+    url: 'https://docs.docker.com/get-started/',
   },
   {
     id: 5,
-    title: 'Algorithms for Software Engineers',
-    provider: 'CareerPath Academy',
-    description: 'Strengthen your logic and problem solving with algorithms, data structures, and system design patterns.',
-    skills: ['Algorithms', 'Data Structures', 'Problem Solving'],
-    level: 'Beginner',
-    duration: '4 weeks',
-    url: 'https://example.com/algorithms',
+    title: 'Thuật toán cho Kỹ sư Phần mềm',
+    provider: 'Học viện CareerPath',
+    description: 'Củng cố tư duy logic và giải quyết vấn đề với thuật toán, cấu trúc dữ liệu và các mẫu thiết kế hệ thống.',
+    skills: ['Thuật toán', 'Cấu trúc dữ liệu', 'Giải quyết vấn đề'],
+    level: 'Cơ bản',
+    duration: '4 tuần',
+    url: 'https://www.geeksforgeeks.org/fundamentals-of-algorithms/',
   },
   {
     id: 6,
-    title: 'Full-Stack Project Roadmap',
-    provider: 'CareerPath Academy',
-    description: 'Build a complete web application from design to deployment with frontend, backend, and database integration.',
+    title: 'Lộ trình Dự án Full-Stack',
+    provider: 'Học viện CareerPath',
+    description: 'Xây dựng một ứng dụng web hoàn chỉnh từ thiết kế đến triển khai với sự tích hợp của frontend, backend và cơ sở dữ liệu.',
     skills: ['Full-Stack', 'React', 'Java', 'SQL'],
-    level: 'Intermediate',
-    duration: '9 weeks',
-    url: 'https://example.com/full-stack-roadmap',
+    level: 'Trung bình',
+    duration: '9 tuần',
+    url: 'https://roadmap.sh/',
   },
 ];
 
@@ -103,8 +103,10 @@ const CourseRecommendationPanel = ({ token }) => {
   const getBadgeColor = (level) => {
     switch (level) {
       case 'Advanced':
+      case 'Nâng cao':
         return 'bg-red-500/10 text-red-300 border-red-500/20';
       case 'Intermediate':
+      case 'Trung bình':
         return 'bg-blue-500/10 text-blue-300 border-blue-500/20';
       default:
         return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20';
@@ -124,9 +126,9 @@ const CourseRecommendationPanel = ({ token }) => {
       <div className="rounded-[1.75rem] border border-slate-800/90 bg-slate-950/80 p-6 shadow-glow">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-white">Course Recommendations</h3>
+            <h3 className="text-lg font-semibold text-white">Gợi ý Khóa học</h3>
             <p className="mt-2 text-sm text-slate-400">
-              Get suggested learning courses based on the skills you have assessed.
+              Nhận các đề xuất khóa học dựa trên kỹ năng bạn đã đánh giá.
             </p>
           </div>
           <button
@@ -135,7 +137,7 @@ const CourseRecommendationPanel = ({ token }) => {
             disabled={loading}
             className="rounded-3xl bg-brand-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-brand-400 disabled:cursor-not-allowed disabled:bg-slate-700"
           >
-            {loading ? 'Loading…' : 'Refresh Courses'}
+            {loading ? 'Đang tải…' : 'Làm mới khóa học'}
           </button>
         </div>
       </div>
@@ -166,11 +168,11 @@ const CourseRecommendationPanel = ({ token }) => {
 
               <div className="grid gap-3 sm:grid-cols-2 text-sm text-slate-400">
                 <div>
-                  <p className="font-semibold text-slate-200">Duration</p>
+                  <p className="font-semibold text-slate-200">Thời lượng</p>
                   <p className="mt-1">{course.duration}</p>
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-200">Match score</p>
+                  <p className="font-semibold text-slate-200">Độ phù hợp</p>
                   <p className="mt-1 text-white">{course.matchScore ?? 'N/A'} / 30</p>
                 </div>
               </div>
@@ -183,7 +185,7 @@ const CourseRecommendationPanel = ({ token }) => {
                 rel="noreferrer"
                 className="inline-flex items-center justify-center rounded-3xl bg-brand-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-brand-400"
               >
-                View Course
+                Xem khóa học
               </a>
             </div>
           </div>

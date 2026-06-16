@@ -55,7 +55,7 @@ const CareerRecommendationPanel = ({ token }) => {
         throw new Error(data.error || data.message || 'Failed to generate recommendations');
       }
 
-      setMessage(`Generated ${data.total || 0} career recommendations based on your skills!`);
+      setMessage(`Đã tạo ${data.total || 0} đề xuất lộ trình nghề nghiệp dựa trên kỹ năng của bạn!`);
       fetchRecommendations();
     } catch (err) {
       setError('Failed to generate recommendations: ' + err.message);
@@ -79,7 +79,7 @@ const CareerRecommendationPanel = ({ token }) => {
         throw new Error(data.error || data.message || 'Failed to archive');
       }
 
-      setMessage('Recommendation archived successfully!');
+      setMessage('Đã lưu trữ đề xuất thành công!');
       setSelectedId(null);
       fetchRecommendations();
     } catch (err) {
@@ -122,9 +122,9 @@ const CareerRecommendationPanel = ({ token }) => {
       <div className="rounded-[1.75rem] border border-slate-800/90 bg-slate-950/80 p-6 shadow-glow">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h3 className="font-semibold text-white">Generate Career Recommendations</h3>
+            <h3 className="font-semibold text-white">Đề xuất Lộ trình Nghề nghiệp</h3>
             <p className="mt-2 text-sm text-slate-400">
-              Analyze your skill assessments and receive personalized career path recommendations
+              Phân tích kỹ năng của bạn và nhận các đề xuất lộ trình nghề nghiệp phù hợp
             </p>
           </div>
           <button
@@ -132,7 +132,7 @@ const CareerRecommendationPanel = ({ token }) => {
             disabled={generating || loading}
             className="whitespace-nowrap rounded-3xl bg-brand-500 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-brand-400 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {generating ? 'Generating...' : 'Generate Now'}
+            {generating ? 'Đang phân tích...' : 'Phân tích ngay'}
           </button>
         </div>
       </div>
@@ -140,7 +140,7 @@ const CareerRecommendationPanel = ({ token }) => {
       {/* Empty State */}
       {recommendations.length === 0 && !loading && (
         <div className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-12 text-center">
-          <p className="text-slate-400">No recommendations yet. Click the button above to generate career path recommendations.</p>
+          <p className="text-slate-400">Chưa có đề xuất nào. Vui lòng nhấn nút bên trên để hệ thống phân tích và đề xuất nghề nghiệp.</p>
         </div>
       )}
 
@@ -149,14 +149,14 @@ const CareerRecommendationPanel = ({ token }) => {
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <h3 className="text-lg font-semibold text-white">
-              Your Career Recommendations ({recommendations.length})
+              Đề xuất Nghề nghiệp cho bạn ({recommendations.length})
             </h3>
             <button
               onClick={generateRecommendations}
               disabled={generating}
               className="text-xs px-3 py-1 rounded-full border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-brand-400 transition"
             >
-              Regenerate
+              Phân tích lại
             </button>
           </div>
 
@@ -174,7 +174,7 @@ const CareerRecommendationPanel = ({ token }) => {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-slate-400">Match Score</span>
+                    <span className="text-sm text-slate-400">Độ phù hợp</span>
                     <span className={`text-2xl font-bold ${getScoreColor(rec.matchScore)}`}>
                       {rec.matchScore}%
                     </span>
@@ -188,7 +188,7 @@ const CareerRecommendationPanel = ({ token }) => {
                   </div>
 
                   <div className={`rounded-2xl border px-3 py-2 text-xs font-semibold text-center ${getStrengthColor(rec.strength)}`}>
-                    {rec.strength} Match
+                    Mức độ phù hợp: {rec.strength}
                   </div>
 
                   {rec.salaryRange && (
@@ -204,7 +204,7 @@ const CareerRecommendationPanel = ({ token }) => {
                     }}
                     className="w-full mt-3 text-xs text-center text-brand-300 hover:text-brand-200 transition font-medium"
                   >
-                    View Details →
+                    Xem chi tiết →
                   </button>
                 </div>
               </div>
@@ -221,7 +221,7 @@ const CareerRecommendationPanel = ({ token }) => {
               onClick={() => setSelectedId(null)}
               className="text-sm text-brand-300 hover:text-brand-200 transition"
             >
-              ← Back to List
+              ← Quay lại danh sách
             </button>
             <h3 className="text-xl font-semibold text-white flex-1 text-center">
               {selectedRecommendation.career}
@@ -233,17 +233,17 @@ const CareerRecommendationPanel = ({ token }) => {
             {/* Header Info */}
             <div className="grid gap-4 sm:grid-cols-3">
               <div className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-4">
-                <p className="text-xs uppercase tracking-widest text-slate-400">Match Score</p>
+                <p className="text-xs uppercase tracking-widest text-slate-400">Độ phù hợp</p>
                 <p className={`mt-3 text-3xl font-bold ${getScoreColor(selectedRecommendation.matchScore)}`}>
                   {selectedRecommendation.matchScore}%
                 </p>
               </div>
               <div className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-4">
-                <p className="text-xs uppercase tracking-widest text-slate-400">Fit Level</p>
+                <p className="text-xs uppercase tracking-widest text-slate-400">Mức độ phù hợp</p>
                 <p className="mt-3 text-xl font-semibold text-white">{selectedRecommendation.strength}</p>
               </div>
               <div className="rounded-3xl border border-slate-800/90 bg-slate-950/80 p-4">
-                <p className="text-xs uppercase tracking-widest text-slate-400">Seniority</p>
+                <p className="text-xs uppercase tracking-widest text-slate-400">Cấp bậc</p>
                 <p className="mt-3 text-lg font-semibold text-white">
                   {selectedRecommendation.seniority?.replace(/_/g, ' ')}
                 </p>
@@ -252,13 +252,13 @@ const CareerRecommendationPanel = ({ token }) => {
 
             {/* Career Info */}
             <div className="space-y-3">
-              <h4 className="font-semibold text-white text-lg">About This Role</h4>
+              <h4 className="font-semibold text-white text-lg">Về vị trí này</h4>
               {selectedRecommendation.careerDescription && (
                 <p className="text-slate-300 leading-6">{selectedRecommendation.careerDescription}</p>
               )}
               {selectedRecommendation.salaryRange && (
                 <p className="text-sm text-slate-400">
-                  <strong>Salary Range:</strong> {selectedRecommendation.salaryRange}
+                  <strong>Mức lương:</strong> {selectedRecommendation.salaryRange}
                 </p>
               )}
             </div>
@@ -266,7 +266,7 @@ const CareerRecommendationPanel = ({ token }) => {
             {/* Analysis */}
             {selectedRecommendation.analysis && (
               <div className="space-y-3 rounded-3xl border border-slate-800/90 bg-slate-950/80 p-5">
-                <h4 className="font-semibold text-white">Our Analysis</h4>
+                <h4 className="font-semibold text-white">Phân tích của chúng tôi</h4>
                 <p className="text-slate-300 leading-6">{selectedRecommendation.analysis}</p>
               </div>
             )}
@@ -274,7 +274,7 @@ const CareerRecommendationPanel = ({ token }) => {
             {/* Matched Skills */}
             {selectedRecommendation.matchedSkills && (
               <div className="space-y-3">
-                <h4 className="font-semibold text-white">Your Matching Skills</h4>
+                <h4 className="font-semibold text-white">Kỹ năng phù hợp</h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedRecommendation.matchedSkills.split(',').map((skill, idx) => (
                     <span
@@ -291,7 +291,7 @@ const CareerRecommendationPanel = ({ token }) => {
             {/* Skills to Improve */}
             {selectedRecommendation.skillsToImprove && (
               <div className="space-y-3">
-                <h4 className="font-semibold text-white">Skills to Develop</h4>
+                <h4 className="font-semibold text-white">Kỹ năng cần phát triển</h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedRecommendation.skillsToImprove.split(',').map((skill, idx) => (
                     <span
@@ -311,13 +311,13 @@ const CareerRecommendationPanel = ({ token }) => {
                 onClick={() => setSelectedId(null)}
                 className="flex-1 rounded-3xl border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition hover:border-brand-400 hover:text-white"
               >
-                Close
+                Đóng
               </button>
               <button
                 onClick={() => archiveRecommendation(selectedRecommendation.id)}
                 className="flex-1 rounded-3xl border border-red-500/50 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-300 transition hover:bg-red-500/20"
               >
-                Archive This
+                Lưu trữ
               </button>
             </div>
           </div>

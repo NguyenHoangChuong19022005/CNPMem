@@ -58,6 +58,7 @@ function App() {
                 <button onClick={() => setSection('skills')} className="transition hover:text-white">Kỹ năng</button>
                 <button onClick={() => setSection('careers')} className="transition hover:text-white">Nghề nghiệp</button>
                 <button onClick={() => setSection('courses')} className="transition hover:text-white">Khóa học</button>
+                <button onClick={handleLogout} className="transition text-brand-400 hover:text-brand-300">Đăng xuất</button>
               </>
             )}
           </nav>
