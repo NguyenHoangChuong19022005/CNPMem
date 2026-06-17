@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AuthPanel from './components/AuthPanel';
 import SkillAssessmentPanel from './components/SkillAssessmentPanel';
 import CareerRecommendationPanel from './components/CareerRecommendationPanel';
 import CourseRecommendationPanel from './components/CourseRecommendationPanel';
 import UserProfilePanel from './components/UserProfilePanel';
+import AdminPanel from './components/AdminPanel';
 
 const features = [
   {
@@ -23,6 +24,28 @@ const features = [
 function App() {
   const [section, setSection] = useState('home');
   const [token, setToken] = useState(() => localStorage.getItem('careerpathse_token'));
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    if (token) {
+      fetch('/api/users/profile', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data && !data.error) {
+          setUser(data);
+        } else {
+          handleLogout();
+        }
+      })
+      .catch(() => handleLogout());
+    } else {
+      setUser(null);
+    }
+  }, [token]);
 
   const handleTokenChange = (newToken) => {
     setToken(newToken);
@@ -34,6 +57,7 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('careerpathse_token');
     setToken(null);
+    setUser(null);
     setSection('home');
   };
 
@@ -58,6 +82,9 @@ function App() {
                 <button onClick={() => setSection('skills')} className="transition hover:text-white">Kỹ năng</button>
                 <button onClick={() => setSection('careers')} className="transition hover:text-white">Nghề nghiệp</button>
                 <button onClick={() => setSection('courses')} className="transition hover:text-white">Khóa học</button>
+                {user?.role === 'ROLE_ADMIN' && (
+                  <button onClick={() => setSection('admin')} className="transition text-amber-400 hover:text-amber-300 font-semibold">Quản trị</button>
+                )}
                 <button onClick={handleLogout} className="transition text-brand-400 hover:text-brand-300">Đăng xuất</button>
               </>
             )}
@@ -252,6 +279,21 @@ function App() {
             </div>
             <div className="rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
               <CourseRecommendationPanel token={token} />
+            </div>
+          </section>
+        )}
+
+        {section === 'admin' && token && user?.role === 'ROLE_ADMIN' && (
+          <section className="space-y-8">
+            <div className="space-y-3">
+              <p className="text-sm uppercase tracking-[0.24em] text-amber-300">Admin Dashboard</p>
+              <h2 className="text-4xl font-semibold text-white">Quản trị Hệ thống</h2>
+              <p className="max-w-2xl text-slate-400">
+                Xem danh sách thành viên, cập nhật kỹ năng chuyên môn và danh mục ngành nghề định hướng.
+              </p>
+            </div>
+            <div className="rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
+              <AdminPanel token={token} />
             </div>
           </section>
         )}
