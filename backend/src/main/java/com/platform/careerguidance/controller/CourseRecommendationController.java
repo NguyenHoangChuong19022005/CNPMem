@@ -172,7 +172,7 @@ public class CourseRecommendationController {
                         "Intermediate",
                         "9 weeks",
                         "https://roadmap.sh/",
-                        "Full-Stack, React, SQL",
+                        "Full-Stack, React, Java, SQL",
                         null)
         );
 
