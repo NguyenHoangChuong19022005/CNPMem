@@ -4,11 +4,14 @@ import com.platform.careerguidance.entity.Career;
 import com.platform.careerguidance.entity.CareerRequirement;
 import com.platform.careerguidance.entity.Course;
 import com.platform.careerguidance.entity.Skill;
+import com.platform.careerguidance.entity.User;
 import com.platform.careerguidance.repository.CareerRepository;
 import com.platform.careerguidance.repository.CareerRequirementRepository;
 import com.platform.careerguidance.repository.CourseRepository;
 import com.platform.careerguidance.repository.SkillRepository;
+import com.platform.careerguidance.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -21,20 +24,39 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final CareerRepository careerRepository;
     private final CareerRequirementRepository careerRequirementRepository;
     private final CourseRepository courseRepository;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public DatabaseSeeder(SkillRepository skillRepository,
                           CareerRepository careerRepository,
                           CareerRequirementRepository careerRequirementRepository,
-                          CourseRepository courseRepository) {
+                          CourseRepository courseRepository,
+                          UserRepository userRepository,
+                          PasswordEncoder passwordEncoder) {
         this.skillRepository = skillRepository;
         this.careerRepository = careerRepository;
         this.careerRequirementRepository = careerRequirementRepository;
         this.courseRepository = courseRepository;
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
     public void run(String... args) throws Exception {
         System.out.println("Checking database status...");
+
+        // 0. Seed Admin User if not exist
+        if (userRepository.findByUsername("admin").isEmpty()) {
+            System.out.println("Seeding default admin user...");
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setPassword(passwordEncoder.encode("admin123"));
+            admin.setEmail("admin@careerpathse.com");
+            admin.setFullName("System Administrator");
+            admin.setRole("ROLE_ADMIN");
+            userRepository.save(admin);
+            System.out.println("Default admin user seeded successfully! (Username: admin, Password: admin123)");
+        }
 
         // 1. Seed Skills if empty
         if (skillRepository.count() == 0) {
