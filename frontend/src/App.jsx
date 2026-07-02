@@ -82,7 +82,7 @@ function App() {
                 <button onClick={() => setSection('profile')} className="transition hover:text-white">Hồ sơ</button>
                 <button onClick={() => setSection('skills')} className="transition hover:text-white">Kỹ năng</button>
                 <button onClick={() => setSection('careers')} className="transition hover:text-white">Nghề nghiệp</button>
-                <button onClick={() => setSection('roadmap')} className="transition hover:text-white">🗺️ Lộ trình</button>
+                <button onClick={() => setSection('roadmap')} className="transition hover:text-white">Lộ trình</button>
                 <button onClick={() => setSection('courses')} className="transition hover:text-white">Khóa học</button>
                 {user?.role === 'ROLE_ADMIN' && (
                   <button onClick={() => setSection('admin')} className="transition text-amber-400 hover:text-amber-300 font-semibold">Quản trị</button>
