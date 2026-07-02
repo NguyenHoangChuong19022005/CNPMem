@@ -3,11 +3,15 @@ package com.platform.careerguidance.config;
 import com.platform.careerguidance.entity.Career;
 import com.platform.careerguidance.entity.CareerRequirement;
 import com.platform.careerguidance.entity.Course;
+import com.platform.careerguidance.entity.Roadmap;
+import com.platform.careerguidance.entity.RoadmapStep;
 import com.platform.careerguidance.entity.Skill;
 import com.platform.careerguidance.entity.User;
 import com.platform.careerguidance.repository.CareerRepository;
 import com.platform.careerguidance.repository.CareerRequirementRepository;
 import com.platform.careerguidance.repository.CourseRepository;
+import com.platform.careerguidance.repository.RoadmapRepository;
+import com.platform.careerguidance.repository.RoadmapStepRepository;
 import com.platform.careerguidance.repository.SkillRepository;
 import com.platform.careerguidance.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -26,19 +30,25 @@ public class DatabaseSeeder implements CommandLineRunner {
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RoadmapRepository roadmapRepository;
+    private final RoadmapStepRepository roadmapStepRepository;
 
     public DatabaseSeeder(SkillRepository skillRepository,
                           CareerRepository careerRepository,
                           CareerRequirementRepository careerRequirementRepository,
                           CourseRepository courseRepository,
                           UserRepository userRepository,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder,
+                          RoadmapRepository roadmapRepository,
+                          RoadmapStepRepository roadmapStepRepository) {
         this.skillRepository = skillRepository;
         this.careerRepository = careerRepository;
         this.careerRequirementRepository = careerRequirementRepository;
         this.courseRepository = courseRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.roadmapRepository = roadmapRepository;
+        this.roadmapStepRepository = roadmapStepRepository;
     }
 
     @Override
@@ -152,8 +162,80 @@ public class DatabaseSeeder implements CommandLineRunner {
             courseRepository.save(createCourse("Docker & Kubernetes trong 3 giờ", "Học nhanh công nghệ Container để triển khai ứng dụng.", "YouTube", "Beginner", "3 hours", "https://www.youtube.com", "Docker"));
             System.out.println("Courses seeded successfully!");
         }
-        
-        System.out.println("Database check complete. Skills: " + skillRepository.count() + ", Careers: " + careerRepository.count() + ", Courses: " + courseRepository.count());
+
+        // 4. Seed Roadmaps if empty
+        if (roadmapRepository.count() == 0) {
+            System.out.println("Seeding roadmaps...");
+            User admin = userRepository.findByUsername("admin").orElse(null);
+
+            careerRepository.findAll().forEach(career -> {
+                Roadmap roadmap = new Roadmap();
+                roadmap.setCareer(career);
+                roadmap.setCreatedBy(admin);
+
+                List<RoadmapStep> steps = new ArrayList<>();
+
+                if (career.getTitle().contains("Backend")) {
+                    roadmap.setTitle("Lộ trình Backend Developer");
+                    roadmap.setDescription("Hành trình từ zero đến Backend Developer với Java & Spring Boot.");
+                    roadmap = roadmapRepository.save(roadmap);
+                    steps.add(createStep(roadmap, 1, "Java Core & OOP", "Nắm vững lập trình hướng đối tượng với Java: class, interface, inheritance, polymorphism.", "https://www.w3schools.com/java/", "Foundation"));
+                    steps.add(createStep(roadmap, 2, "Cấu trúc dữ liệu & Thuật toán", "Array, LinkedList, Stack, Queue, HashMap, Sorting & Searching.", "https://visualgo.net/", "Foundation"));
+                    steps.add(createStep(roadmap, 3, "Spring Boot & REST API", "Xây dựng API RESTful với Spring Boot, Controller, Service, Repository.", "https://spring.io/quickstart", "Core Skills"));
+                    steps.add(createStep(roadmap, 4, "SQL & MySQL", "Thiết kế CSDL, viết query JOIN, Index, Transaction.", "https://www.w3schools.com/sql/", "Core Skills"));
+                    steps.add(createStep(roadmap, 5, "Spring Security & JWT", "Bảo mật API với JWT Authentication và Spring Security.", "https://spring.io/guides/topicals/spring-security-architecture", "Advanced"));
+                    steps.add(createStep(roadmap, 6, "Docker & Deployment", "Đóng gói ứng dụng với Docker, deploy lên server.", "https://docs.docker.com/get-started/", "Advanced"));
+                    steps.add(createStep(roadmap, 7, "Dự án thực tế: REST API App", "Xây dựng ứng dụng quản lý hoàn chỉnh với Spring Boot + MySQL.", "https://github.com/", "Project"));
+
+                } else if (career.getTitle().contains("Frontend")) {
+                    roadmap.setTitle("Lộ trình Frontend Developer");
+                    roadmap.setDescription("Trở thành Frontend Developer chuyên nghiệp với React và JavaScript hiện đại.");
+                    roadmap = roadmapRepository.save(roadmap);
+                    steps.add(createStep(roadmap, 1, "HTML & CSS cơ bản", "Cấu trúc trang web với HTML5, tạo kiểu dáng với CSS3, Flexbox, Grid.", "https://www.w3schools.com/html/", "Foundation"));
+                    steps.add(createStep(roadmap, 2, "JavaScript ES6+", "Biến, hàm, vòng lặp, Promise, async/await, DOM manipulation.", "https://javascript.info/", "Foundation"));
+                    steps.add(createStep(roadmap, 3, "React cơ bản", "Component, Props, State, Hooks (useState, useEffect), JSX.", "https://react.dev/learn", "Core Skills"));
+                    steps.add(createStep(roadmap, 4, "React Router & State Management", "Điều hướng trang với React Router, quản lý state với Context/Redux.", "https://reactrouter.com/", "Core Skills"));
+                    steps.add(createStep(roadmap, 5, "Giao tiếp API (Axios/Fetch)", "Kết nối frontend với backend API, xử lý response, error handling.", "https://axios-http.com/docs/intro", "Advanced"));
+                    steps.add(createStep(roadmap, 6, "CSS Framework & UI Design", "TailwindCSS, responsive design, animation, component library.", "https://tailwindcss.com/docs", "Advanced"));
+                    steps.add(createStep(roadmap, 7, "Dự án thực tế: SPA App", "Xây dựng ứng dụng Single Page Application hoàn chỉnh với React.", "https://github.com/", "Project"));
+
+                } else if (career.getTitle().contains("Full-Stack") || career.getTitle().contains("Fullstack")) {
+                    roadmap.setTitle("Lộ trình Full-Stack Developer");
+                    roadmap.setDescription("Làm chủ cả Frontend lẫn Backend để trở thành Full-Stack Developer.");
+                    roadmap = roadmapRepository.save(roadmap);
+                    steps.add(createStep(roadmap, 1, "HTML, CSS & JavaScript", "Nền tảng web: HTML5, CSS3, JavaScript ES6+.", "https://www.w3schools.com/", "Foundation"));
+                    steps.add(createStep(roadmap, 2, "Java Core & OOP", "Lập trình hướng đối tượng với Java, nền tảng cho Backend.", "https://www.w3schools.com/java/", "Foundation"));
+                    steps.add(createStep(roadmap, 3, "React Frontend", "Xây dựng giao diện với React: component, state, hooks.", "https://react.dev/learn", "Core Skills"));
+                    steps.add(createStep(roadmap, 4, "Spring Boot Backend", "Xây dựng REST API với Spring Boot, kết nối MySQL.", "https://spring.io/quickstart", "Core Skills"));
+                    steps.add(createStep(roadmap, 5, "Tích hợp Frontend - Backend", "Kết nối React với Spring Boot API, JWT auth, CORS.", "https://axios-http.com/", "Advanced"));
+                    steps.add(createStep(roadmap, 6, "Docker & CI/CD", "Container hóa ứng dụng, tự động hóa deploy.", "https://docs.docker.com/", "Advanced"));
+                    steps.add(createStep(roadmap, 7, "Dự án thực tế: Full-Stack App", "Xây dựng ứng dụng web hoàn chỉnh từ Frontend đến Backend và deploy.", "https://github.com/", "Project"));
+                } else {
+                    roadmap.setTitle("Lộ trình " + career.getTitle());
+                    roadmap.setDescription("Lộ trình học tập dành cho " + career.getTitle() + ".");
+                    roadmap = roadmapRepository.save(roadmap);
+                    steps.add(createStep(roadmap, 1, "Kiến thức nền tảng", "Học các kiến thức cơ bản cần thiết cho vị trí này.", "", "Foundation"));
+                    steps.add(createStep(roadmap, 2, "Kỹ năng cốt lõi", "Thực hành và phát triển kỹ năng chuyên môn.", "", "Core Skills"));
+                    steps.add(createStep(roadmap, 3, "Dự án thực tế", "Áp dụng kiến thức vào dự án thực tế để tích lũy kinh nghiệm.", "", "Project"));
+                }
+
+                roadmapStepRepository.saveAll(steps);
+            });
+            System.out.println("Roadmaps seeded successfully!");
+        }
+
+        System.out.println("Database check complete. Skills: " + skillRepository.count() + ", Careers: " + careerRepository.count() + ", Courses: " + courseRepository.count() + ", Roadmaps: " + roadmapRepository.count());
+    }
+
+    private RoadmapStep createStep(Roadmap roadmap, int order, String topic, String desc, String url, String phase) {
+        RoadmapStep step = new RoadmapStep();
+        step.setRoadmap(roadmap);
+        step.setStepOrder(order);
+        step.setTopicName(topic);
+        step.setDescription(desc);
+        step.setContentUrl(url);
+        step.setPhase(phase);
+        return step;
     }
 
     private Skill createSkill(String name, String description, String category, Integer proficiency) {

@@ -5,6 +5,7 @@ import CareerRecommendationPanel from './components/CareerRecommendationPanel';
 import CourseRecommendationPanel from './components/CourseRecommendationPanel';
 import UserProfilePanel from './components/UserProfilePanel';
 import AdminPanel from './components/AdminPanel';
+import LearningRoadmapPanel from './components/LearningRoadmapPanel';
 
 const features = [
   {
@@ -81,6 +82,7 @@ function App() {
                 <button onClick={() => setSection('profile')} className="transition hover:text-white">Hồ sơ</button>
                 <button onClick={() => setSection('skills')} className="transition hover:text-white">Kỹ năng</button>
                 <button onClick={() => setSection('careers')} className="transition hover:text-white">Nghề nghiệp</button>
+                <button onClick={() => setSection('roadmap')} className="transition hover:text-white">🗺️ Lộ trình</button>
                 <button onClick={() => setSection('courses')} className="transition hover:text-white">Khóa học</button>
                 {user?.role === 'ROLE_ADMIN' && (
                   <button onClick={() => setSection('admin')} className="transition text-amber-400 hover:text-amber-300 font-semibold">Quản trị</button>
@@ -279,6 +281,21 @@ function App() {
             </div>
             <div className="rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
               <CourseRecommendationPanel token={token} />
+            </div>
+          </section>
+        )}
+
+        {section === 'roadmap' && token && (
+          <section className="space-y-8">
+            <div className="space-y-3">
+              <p className="text-sm uppercase tracking-[0.24em] text-brand-300">Learning Roadmap</p>
+              <h2 className="text-4xl font-semibold text-white">Lộ trình học tập cá nhân hóa</h2>
+              <p className="max-w-2xl text-slate-400">
+                Đăng ký lộ trình phù hợp với mục tiêu nghề nghiệp, theo dõi tiến độ từng bước và chinh phục các kỹ năng cần thiết.
+              </p>
+            </div>
+            <div className="rounded-[2rem] border border-slate-800/90 bg-slate-900/80 p-8 shadow-glow backdrop-blur-xl">
+              <LearningRoadmapPanel token={token} />
             </div>
           </section>
         )}
